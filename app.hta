@@ -50,6 +50,7 @@
                 <b>GLOBAL MOUSE HOTKEYS (Auto Captures Position & Pixel Color):</b><br>
                 • <kbd>Shift + C</kbd> : Left Click | • <kbd>Shift + D</kbd> : Double Click | • <kbd>Shift + R</kbd> : Right Click | • <kbd>Shift + M</kbd> : Move Cursor Only<br>
                 • <kbd>Shift + W</kbd> : Scroll Up | • <kbd>Shift + S</kbd> : Scroll Down<br>
+                • <kbd>Shift + O</kbd> : Screenshot Full Screen | • <kbd>Shift + I</kbd> : Screenshot Region (Drag Overlay)<br>
                 • <kbd>Shift + E</kbd> : Point & Shoot Edit Baris (Edit Koordinat & Warna Baris yang Dipilih)<br>
                 <b>GLOBAL KEYBOARD & RUNTIME HOTKEYS:</b><br>
                 • <kbd>Shift + T</kbd> : Type Text (Input Dialog) | • <kbd>Shift + K</kbd> : Shortcut Wizard (Exact OSK)<br>
@@ -57,6 +58,12 @@
                 🧠 <b>DynamicHold:</b> Ketika merekam posisi via Hotkey, warna pixel otomatis tercatat! Set kolom 'Target Color' ke Hex Color untuk DynamicHold, atau ubah/kosongkan ke <b>STATIC WAIT</b> jika hanya ingin delay biasa.<br>
                 💡 <b>MULTI-DRAG:</b> Tahan tombol <kbd>Ctrl</kbd> dan klik baris tabel untuk memilih beberapa baris sekaligus, lalu seret (drag & drop) untuk memindahkan semuanya bersamaan.
             </div>
+        </div>
+
+        <div style="margin: 10px 0; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <label style="font-weight: bold; color: #38bdf8; font-size: 13px;">📁 Screenshot Folder:</label>
+            <input type="text" id="inpShotFolder" placeholder="misal: screenshot" style="padding:7px 10px; width:220px; background:#0b0f17; color:#ffffff; border:1px solid #334155; border-radius:4px;">
+            <span style="font-size:11px; color:#94a3b8;">Screenshots disimpan ke folder ini (di dalam folder app) dengan nama &lt;folder&gt;_1.png, &lt;folder&gt;_2.png, dst. tidak akan tertimpa pada sesi berikutnya.</span>
         </div>
 
         <div class="card">
@@ -336,6 +343,50 @@
 <script type="text/javascript">
     var draggedRows = [];
     var lastSelectedRow = null;
+
+    var regionPollTimer = null;
+    var regionWaitPath = "";
+    var regionTimeoutCount = 0;
+
+    function StartRegionPoll(tmpPath) {
+        regionWaitPath = tmpPath;
+        regionTimeoutCount = 0;
+        if (regionPollTimer) { clearInterval(regionPollTimer); regionPollTimer = null; }
+        regionPollTimer = setInterval("PollRegionFile()", 250);
+    }
+
+    function CleanUpShotFiles() {
+        try {
+            var fs = new ActiveXObject('Scripting.FileSystemObject');
+            var idx = regionWaitPath.lastIndexOf('/');
+            var appDir = idx > 0 ? regionWaitPath.substring(0, idx) : 'D:/App/this-aint-rpa-main';
+            if (fs.FileExists(appDir + '/screenshot_region.tmp')) fs.DeleteFile(appDir + '/screenshot_region.tmp', true);
+            if (fs.FileExists(appDir + '/screenshot_preview.png')) fs.DeleteFile(appDir + '/screenshot_preview.png', true);
+            if (fs.FileExists(appDir + '/screenshot_overlay.hta')) fs.DeleteFile(appDir + '/screenshot_overlay.hta', true);
+        } catch (e) {}
+    }
+
+    function PollRegionFile() {
+        try {
+            var fs = new ActiveXObject('Scripting.FileSystemObject');
+            if (regionWaitPath != "" && fs.FileExists(regionWaitPath)) {
+                if (regionPollTimer) { clearInterval(regionPollTimer); regionPollTimer = null; }
+                var f = fs.OpenTextFile(regionWaitPath, 1);
+                var line = f.ReadLine(); f.Close();
+                fs.DeleteFile(regionWaitPath, true);
+                var p = line.split(',');
+                var x1 = parseInt(p[0]), y1 = parseInt(p[1]);
+                CleanUpShotFiles();
+                window.CompleteRegionCapture(x1, y1, parseInt(p[2]), parseInt(p[3]));
+                return;
+            }
+            regionTimeoutCount++;
+            if (regionTimeoutCount > 120) {
+                if (regionPollTimer) { clearInterval(regionPollTimer); regionPollTimer = null; }
+                CleanUpShotFiles();
+            }
+        } catch (e) {}
+    }
 
     function InitDragAndDropListeners(rowElement) {
         rowElement.setAttribute("draggable", "true");
@@ -618,6 +669,12 @@ Sub AppCleanExit()
                 Case 83 ' Shift + S (Scroll Down)
                     window.event.returnValue = False
                     Call AddActionRowRouter("SCROLL DOWN", "-", "-", "STATIC WAIT", "1", 300)
+                Case 79 ' Shift + O (Screenshot Full Screen)
+                    window.event.returnValue = False
+                    Call AddActionRowRouter("SCREENSHOT", "-", "-", "STATIC WAIT", "screenshot_" & stepsCount + extraStepsCount + 1 & ".png", 900)
+                Case 73 ' Shift + I (Screenshot Region via overlay drag)
+                    window.event.returnValue = False
+                    Call TriggerRegionCapture()
                 Case 69 ' Shift + E (Edit Baris Terpilih Point & Shoot)
                     window.event.returnValue = False
                     If Not UpdateSelectedRowCoordinatesAndColor(realX, realY, realColor) Then
@@ -649,6 +706,70 @@ Sub AppCleanExit()
     Sub CloseShortcutModal()
         document.getElementById("shortcutModal").style.display = "none"
         document.body.focus()
+    End Sub
+
+    Sub TriggerRegionCapture()
+        On Error Resume Next
+        Dim PathOverlay, FileOverlay, tmpPathJs, PathPreview, PreviewUrlJs, PathCapExe, preCmd
+        PathOverlay = wshShell.CurrentDirectory & "\screenshot_overlay.hta"
+        tmpPathJs = Replace(wshShell.CurrentDirectory & "\screenshot_region.tmp", "\", "/")
+        PathCapExe = wshShell.CurrentDirectory & "\ScreenCap.exe"
+        Call EnsureScreenCapEngine()
+        PathPreview = wshShell.CurrentDirectory & "\screenshot_preview.png"
+        PreviewUrlJs = "file:///" & Replace(PathPreview, "\", "/")
+        preCmd = """" & PathCapExe & """ full """ & PathPreview & """"
+        wshShell.Run preCmd, 0, True
+        Set FileOverlay = FSO.CreateTextFile(PathOverlay, True)
+        FileOverlay.WriteLine "<!DOCTYPE html>"
+        FileOverlay.WriteLine "<html>"
+        FileOverlay.WriteLine "<head>"
+        FileOverlay.WriteLine "<meta http-equiv=""X-UA-Compatible"" content=""IE=edge"">"
+        FileOverlay.WriteLine "<hta:application id=""regionSel"" showintaskbar=""no"" caption=""no"" border=""none"" innerborder=""no"" maximizebutton=""no"" minimizebutton=""no"" sysmenu=""no"" windowstate=""maximize"" scroll=""no"" />"
+        FileOverlay.WriteLine "<style>"
+        FileOverlay.WriteLine "html,body{width:100%;height:100%;margin:0;padding:0;overflow:hidden;background:#000 url('" & PreviewUrlJs & "') no-repeat center center;background-size:100% 100%;cursor:crosshair;}"
+        FileOverlay.WriteLine "#mask{position:fixed;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,0.25);}"
+        FileOverlay.WriteLine "#sel{position:fixed;display:none;border:2px solid #3b82f6;background:rgba(56,189,248,0.25);}"
+        FileOverlay.WriteLine "#tip{position:fixed;left:50%;top:10px;transform:translateX(-50%);background:#111827;color:#38bdf8;padding:10px 18px;font-family:Segoe UI,Arial;font-size:14px;font-weight:700;border:1px solid #3b82f6;border-radius:6px;z-index:99;}"
+        FileOverlay.WriteLine "</style>"
+        FileOverlay.WriteLine "</head>"
+        FileOverlay.WriteLine "<body>"
+        FileOverlay.WriteLine "<div id=""tip"">Pilih Area: Klik-tahan & seret, lalu lepas. (ESC = Batal)</div>"
+        FileOverlay.WriteLine "<div id=""mask""></div>"
+        FileOverlay.WriteLine "<div id=""sel""></div>"
+        FileOverlay.WriteLine "<script language=""javascript"">"
+        FileOverlay.WriteLine "var sx=0,sy=0,dx=0,dy=0,dragging=false,scaleX=1,scaleY=1;"
+        FileOverlay.WriteLine "var pv=new Image();pv.onload=function(){if(pv.width>0&&window.innerWidth>0)scaleX=pv.width/window.innerWidth;if(pv.height>0&&window.innerHeight>0)scaleY=pv.height/window.innerHeight;};pv.src='" & PreviewUrlJs & "';"
+        FileOverlay.WriteLine "var mask=document.getElementById('mask'),sel=document.getElementById('sel');"
+        FileOverlay.WriteLine "document.onmousedown=function(e){e.preventDefault();dragging=true;sx=window.event?window.event.clientX:e.clientX;sy=window.event?window.event.clientY:e.clientY;};"
+        FileOverlay.WriteLine "document.onmousemove=function(e){if(!dragging)return;var cx=window.event?window.event.clientX:e.clientX,cy=window.event?window.event.clientY:e.clientY;dx=cx;dy=cy;drawSel();};"
+        FileOverlay.WriteLine "document.onmouseup=function(e){if(!dragging)return;dragging=false;var cx=window.event?window.event.clientX:e.clientX,cy=window.event?window.event.clientY:e.clientY;dx=cx;dy=cy;finishSelect();};"
+        FileOverlay.WriteLine "function drawSel(){var x1=Math.min(sx,dx),y1=Math.min(sy,dy),x2=Math.max(sx,dx),y2=Math.max(sy,dy);sel.style.left=x1+'px';sel.style.top=y1+'px';sel.style.width=(x2-x1)+'px';sel.style.height=(y2-y1)+'px';sel.style.display='block';}"
+        FileOverlay.WriteLine "function finishSelect(){var x1=Math.min(sx,dx),y1=Math.min(sy,dy),x2=Math.max(sx,dx),y2=Math.max(sy,dy);if((x2-x1)<3||(y2-y1)<3){cancel();return;}"
+        FileOverlay.WriteLine "var px1=Math.round(x1*scaleX),py1=Math.round(y1*scaleY),px2=Math.round(x2*scaleX),py2=Math.round(y2*scaleY);"
+        FileOverlay.WriteLine "var fs=new ActiveXObject('Scripting.FileSystemObject');var tw=fs.CreateTextFile('" & tmpPathJs & "',true);tw.WriteLine(px1+','+py1+','+px2+','+py2);tw.Close();window.close();}"
+        FileOverlay.WriteLine "function cancel(){try{var fs=new ActiveXObject('Scripting.FileSystemObject');var tw=fs.CreateTextFile('" & tmpPathJs & "',true);tw.WriteLine('-1,-1,-1,-1');tw.Close();}catch(e){}window.close();}"
+        FileOverlay.WriteLine "window.onkeydown=function(e){if((window.event?window.event.keyCode:e.keyCode)===27)cancel();};"
+        FileOverlay.WriteLine "</" & "script>"
+        FileOverlay.WriteLine "</body>"
+        FileOverlay.WriteLine "</html>"
+        FileOverlay.Close
+
+        ' Launch overlay non-blocking and poll asynchronously (no blocking busy-loop)
+        wshShell.Run """" & PathOverlay & """", 1, False
+        Call StartAsyncPoll(tmpPathJs)
+    End Sub
+
+    Sub StartAsyncPoll(tmpPathJs)
+        ' Hand control to the JS interval poller; returns immediately to avoid mshta slow-script dialog
+        window.StartRegionPoll tmpPathJs
+    End Sub
+
+    Sub CompleteRegionCapture(x1, y1, x2, y2)
+        On Error Resume Next
+        If CLng(x1) = -1 Then Exit Sub ' user cancelled
+        Dim b1, b2, b3, b4
+        b1 = CInt(x1) : b2 = CInt(y1) : b3 = CInt(x2 - x1) : b4 = CInt(y2 - y1)
+        Call AddActionRowRouter("SCREENSHOT REGION", b1, b2, "STATIC WAIT", "region_" & stepsCount + extraStepsCount + 1 & ".png," & b3 & "x" & b4, 900)
     End Sub
 
     Sub SelectShortcut(valKey, defaultName)
@@ -810,6 +931,8 @@ Sub AppCleanExit()
             "<option value='WRITE'" & IIf(actionType="WRITE"," selected","") & ">WRITE</option>" & _
             "<option value='SHORTCUT'" & IIf(actionType="SHORTCUT"," selected","") & ">SHORTCUT</option>" & _
             "<option value='SWITCH_APP'" & IIf(actionType="SWITCH_APP"," selected","") & ">SWITCH_APP</option>" & _
+            "<option value='SCREENSHOT'" & IIf(actionType="SCREENSHOT"," selected","") & ">SCREENSHOT</option>" & _
+            "<option value='SCREENSHOT REGION'" & IIf(actionType="SCREENSHOT REGION"," selected","") & ">SCREENSHOT REGION</option>" & _
             "</select>"
         row.insertCell(2).innerHTML = "<input type='text' class='input-inline status-coord' id='inp_coord_" & stepsCount & "' value='" & mouseX & ", " & mouseY & "'>"
         row.insertCell(3).innerHTML = "<span class='color-preview-chip' id='chip_" & stepsCount & "' style='background-color:" & bgChip & ";'></span>" & _
@@ -843,6 +966,8 @@ Sub AppCleanExit()
             "<option value='WRITE'" & IIf(actionType="WRITE"," selected","") & ">WRITE</option>" & _
             "<option value='SHORTCUT'" & IIf(actionType="SHORTCUT"," selected","") & ">SHORTCUT</option>" & _
             "<option value='SWITCH_APP'" & IIf(actionType="SWITCH_APP"," selected","") & ">SWITCH_APP</option>" & _
+            "<option value='SCREENSHOT'" & IIf(actionType="SCREENSHOT"," selected","") & ">SCREENSHOT</option>" & _
+            "<option value='SCREENSHOT REGION'" & IIf(actionType="SCREENSHOT REGION"," selected","") & ">SCREENSHOT REGION</option>" & _
             "</select>"
         row.insertCell(2).innerHTML = "<input type='text' class='input-inline status-coord' id='ext_inp_coord_" & extraStepsCount & "' value='" & mouseX & ", " & mouseY & "'>"
         row.insertCell(3).innerHTML = "<span class='color-preview-chip' id='ext_chip_" & extraStepsCount & "' style='background-color:" & bgChip & ";'></span>" & _
@@ -936,9 +1061,105 @@ Sub AppCleanExit()
         MsgBox "Metadata berhasil di-load!", 64, "Sukses"
     End Sub
 
+    Function GetShotFolderName()
+        Dim v
+        v = Trim(document.getElementById("inpShotFolder").value)
+        If v = "" Then v = "screenshot"
+        v = Replace(v, "\", "_")
+        v = Replace(v, "/", "_")
+        v = Replace(v, ":", "_")
+        v = Replace(v, "*", "_")
+        v = Replace(v, "?", "_")
+        v = Replace(v, Chr(34), "_")
+        v = Replace(v, "<", "_")
+        v = Replace(v, ">", "_")
+        v = Replace(v, "|", "_")
+        If Len(v) > 60 Then v = Left(v, 60)
+        If v = "" Then v = "screenshot"
+        GetShotFolderName = v
+    End Function
+
+    Function GetShotOutputDir()
+        GetShotOutputDir = wshShell.CurrentDirectory & "\" & GetShotFolderName()
+    End Function
+
+    Function GetShotStartNumber(dirAbs, prefix)
+        Dim n, f, fsoIt, bn, midPart, numVal
+        n = 1
+        If FSO.FolderExists(dirAbs) Then
+            Set f = FSO.GetFolder(dirAbs).Files
+            For Each fsoIt In f
+                bn = LCase(fsoIt.Name)
+                If LCase(FSO.GetExtensionName(fsoIt.Name)) = "png" Then
+                    If InStr(bn, LCase(prefix) & "_") = 1 Then
+                        midPart = Mid(bn, Len(LCase(prefix)) + 2)
+                        midPart = Left(midPart, Len(midPart) - 4)
+                        If IsNumeric(midPart) Then
+                            numVal = CLng(midPart)
+                            If numVal >= n Then n = numVal + 1
+                        End If
+                    End If
+                End If
+            Next
+        End If
+        GetShotStartNumber = n
+    End Function
+
+    Sub EnsureScreenCapEngine()
+        On Error Resume Next
+        Dim PathCs, PathExe, FileCs, cscRes
+        PathCs = wshShell.CurrentDirectory & "\ScreenCap.cs"
+        PathExe = wshShell.CurrentDirectory & "\ScreenCap.exe"
+        If FSO.FileExists(PathExe) Then Exit Sub
+
+        Set FileCs = FSO.CreateTextFile(PathCs, True)
+        FileCs.WriteLine "using System;"
+        FileCs.WriteLine "using System.Drawing;"
+        FileCs.WriteLine "using System.Drawing.Imaging;"
+        FileCs.WriteLine "using System.Runtime.InteropServices;"
+        FileCs.WriteLine "class ScreenCap{"
+        FileCs.WriteLine "[DllImport(""user32.dll"")] static extern bool GetWindowRect(IntPtr h, out RECT r);"
+        FileCs.WriteLine "[DllImport(""user32.dll"")] static extern bool PrintWindow(IntPtr h, IntPtr d, uint f);"
+        FileCs.WriteLine "[DllImport(""user32.dll"")] static extern IntPtr GetForegroundWindow();"
+        FileCs.WriteLine "[DllImport(""user32.dll"")] static extern int GetSystemMetrics(int i);"
+        FileCs.WriteLine "[DllImport(""user32.dll"")] static extern bool SetProcessDPIAware();"
+        FileCs.WriteLine "[StructLayout(LayoutKind.Sequential)] struct RECT{public int L,T,R,B;}"
+        FileCs.WriteLine "static int Main(string[] a){"
+        FileCs.WriteLine "SetProcessDPIAware();"
+        FileCs.WriteLine "try{"
+        FileCs.WriteLine "string mode=a[0], fn=a[1];"
+        FileCs.WriteLine "if(mode==""window""){"
+        FileCs.WriteLine "IntPtr hw=GetForegroundWindow(); RECT r; GetWindowRect(hw,out r);"
+        FileCs.WriteLine "int w=r.R-r.L, hh=r.B-r.T;"
+        FileCs.WriteLine "using(Bitmap b=new Bitmap(w,hh)){ using(Graphics g=Graphics.FromImage(b)){ IntPtr dc=g.GetHdc(); PrintWindow(hw,dc,0); g.ReleaseHdc(dc);} b.Save(fn,ImageFormat.Png);}"
+        FileCs.WriteLine "return 0;}"
+        FileCs.WriteLine "int sw=GetSystemMetrics(0), sh=GetSystemMetrics(1);"
+        FileCs.WriteLine "using(Bitmap b=new Bitmap(sw,sh)){"
+        FileCs.WriteLine "using(Graphics g=Graphics.FromImage(b)){ g.CopyFromScreen(0,0,0,0,new Size(sw,sh));}"
+        FileCs.WriteLine "if(mode==""region""){ int x=int.Parse(a[2]),y=int.Parse(a[3]),w=int.Parse(a[4]),h=int.Parse(a[5]);"
+        FileCs.WriteLine "int cx=System.Math.Max(0,x), cy=System.Math.Max(0,y), cw=System.Math.Min(w,sw-cx), ch=System.Math.Min(h,sh-cy); if(cw>0&&ch>0){ using(Bitmap c=b.Clone(new Rectangle(cx,cy,cw,ch),b.PixelFormat)){ c.Save(fn,ImageFormat.Png);} } return 0;}"
+        FileCs.WriteLine "b.Save(fn,ImageFormat.Png);}"
+        FileCs.WriteLine "return 0;"
+        FileCs.WriteLine "}catch(System.Exception e){ return 1;}"
+        FileCs.WriteLine "}}"
+        FileCs.Close
+
+        Dim cscPath
+        cscPath = "C:\Windows\Microsoft.NET\Framework\v4.0.30319\csc.exe"
+        If Not FSO.FileExists(cscPath) Then
+            cscPath = "C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe"
+        End If
+        If Not FSO.FileExists(cscPath) Then
+            MsgBox "Screenshot engine butuh .NET Framework csc.exe. Fitur SCREENSHOT tidak aktif.", 48, "ScreenCap"
+            Exit Sub
+        End If
+        cscRes = wshShell.Run("""" & cscPath & """ /nologo /target:exe /out:""" & PathExe & """ """ & PathCs & """", 0, True)
+    End Sub
+
 Sub GenerateVBSOnly()
-        Dim PathFile, FileVBS, loopInput, totalStepsActive, tbody, rows, rowIdx
-        Dim extTbody, extRows, extRowIdx
+        Dim PathFile, FileVBS, loopInput, totalStepsActive, tbody, rows, rowIdx, mainShotIdx, qShot
+        qShot = Chr(34)
+        Dim extTbody, extRows, extRowIdx, extShotIdx
         Set tbody = document.getElementById("tableBody")
         Set rows = tbody.rows
         totalStepsActive = rows.length
@@ -953,14 +1174,33 @@ Sub GenerateVBSOnly()
         If loopInput = "" Then Exit Sub
         loopOpt = loopInput
         
+        Call EnsureScreenCapEngine()
+        
+        Dim shotDirAbs, shotCounter, shotPrefix, mainShotSteps, stepIdx
+        shotPrefix = GetShotFolderName()
+        shotDirAbs = GetShotOutputDir()
+        If Not FSO.FolderExists(shotDirAbs) Then FSO.CreateFolder shotDirAbs
+        shotCounter = GetShotStartNumber(shotDirAbs, shotPrefix)
+        mainShotSteps = 0
+        For stepIdx = 0 To rows.length - 1
+            Dim sActTmp
+            sActTmp = rows(stepIdx).getElementsByClassName("status-act")(0).value
+            If sActTmp = "SCREENSHOT" Or sActTmp = "SCREENSHOT REGION" Then mainShotSteps = mainShotSteps + 1
+        Next
+        If mainShotSteps = 0 Then mainShotSteps = 1
+
         PathFile = wshShell.CurrentDirectory & "\w.vbs"
         Set FileVBS = FSO.CreateTextFile(PathFile, True)
         
+        FileVBS.WriteLine "Dim shotFld"
+        FileVBS.WriteLine "shotFld = """ & shotDirAbs & """"
+
         FileVBS.WriteLine "' GENERATED ENGINE v1.7-pro Mouse Interrupt & Countdown Edition"
-        FileVBS.WriteLine "Dim shl, ax, fso, currentLoop, maxLoop, runForever, ts, lastPhysX, lastPhysY"
+        FileVBS.WriteLine "Dim shl, ax, fso, currentLoop, maxLoop, runForever, ts, lastPhysX, lastPhysY, capExe"
         FileVBS.WriteLine "Set shl = CreateObject(""WScript.Shell"")"
         FileVBS.WriteLine "Set ax = CreateObject(""Excel.Application"")"
         FileVBS.WriteLine "Set fso = CreateObject(""Scripting.FileSystemObject"")"
+        FileVBS.WriteLine "capExe = fso.GetParentFolderName(WScript.ScriptFullName) & ""\ScreenCap.exe"""
         FileVBS.WriteLine "WScript.Sleep 1500"
         
         If LCase(loopInput) = "inf" Then
@@ -1085,11 +1325,24 @@ Sub GenerateVBSOnly()
         FileVBS.WriteLine "   Loop"
         FileVBS.WriteLine "End Sub"        
 
+        ' ============ SCREENSHOT ENGINE HELPER (uses pre-built ScreenCap.exe) ============
+        FileVBS.WriteLine "Sub RunScreenshot(outFile, rx, ry, rw, rh)"
+        FileVBS.WriteLine "   On Error Resume Next"
+        FileVBS.WriteLine "   If Not fso.FileExists(capExe) Then Exit Sub"
+        FileVBS.WriteLine "   If rx >= 0 And rw > 0 Then"
+        FileVBS.WriteLine "    shl.Run Chr(34) & capExe & Chr(34) & "" region "" & Chr(34) & outFile & Chr(34) & "" "" & rx & "" "" & ry & "" "" & rw & "" "" & rh, 0, True"
+        FileVBS.WriteLine "   Else"
+        FileVBS.WriteLine "    shl.Run Chr(34) & capExe & Chr(34) & "" full "" & Chr(34) & outFile & Chr(34), 0, True"
+        FileVBS.WriteLine "   End If"
+        FileVBS.WriteLine "   WScript.Sleep 200"
+        FileVBS.WriteLine "End Sub"
+
         ' MAIN LOOP SCRIPT
         FileVBS.WriteLine "currentLoop = 0"
         FileVBS.WriteLine "Do While (currentLoop < maxLoop) Or runForever"
         FileVBS.WriteLine "    currentLoop = currentLoop + 1"
         
+        mainShotIdx = 0
         For rowIdx = 0 To rows.length - 1
             Dim curRow, vName, vAct, vCoord, vColor, vParam, vDelay
             Set curRow = rows(rowIdx)
@@ -1137,6 +1390,29 @@ Sub GenerateVBSOnly()
                 scrollNotchesDown = 1
                 If IsNumeric(vParam) And CInt(vParam) > 0 Then scrollNotchesDown = CInt(vParam)
                 FileVBS.WriteLine "    ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""mouse_event"""",""""JJJJJJ"""",2048,0,0," & (scrollNotchesDown * -120) & ",0)"""
+            ElseIf vAct = "SCREENSHOT" Then
+                FileVBS.WriteLine "    Call RunScreenshot(shotFld & " & qShot & "\" & qShot & " & " & qShot & shotPrefix & "_" & qShot & " & (shotCounter + (currentLoop - 1) * " & mainShotSteps & " + " & mainShotIdx & ") & " & qShot & ".png" & qShot & ", -1, -1, -1, -1)"
+                mainShotIdx = mainShotIdx + 1
+            ElseIf vAct = "SCREENSHOT REGION" Then
+                Dim sRParts, sFileName, sWH, sWxH, sRCoord, sRx, sRy, sRw, sRh
+                sRParts = Split(vParam, ",")
+                sFileName = Trim(sRParts(0))
+                sWH = "-"
+                If UBound(sRParts) >= 1 Then sWH = Trim(sRParts(1))
+                sRx = "-" : sRy = "-"
+                If InStr(vCoord, ",") > 0 Then
+                    sRCoord = Split(vCoord, ",")
+                    sRx = Trim(sRCoord(0)) : sRy = Trim(sRCoord(1))
+                End If
+                sRw = "-" : sRh = "-"
+                If InStr(sWH, "x") > 0 Then
+                    sWxH = Split(sWH, "x")
+                    sRw = Trim(sWxH(0)) : sRh = Trim(sWxH(1))
+                End If
+                If IsNumeric(sRx) And IsNumeric(sRy) And IsNumeric(sRw) And IsNumeric(sRh) Then
+                    FileVBS.WriteLine "    Call RunScreenshot(shotFld & " & qShot & "\" & qShot & " & " & qShot & shotPrefix & "_" & qShot & " & (shotCounter + (currentLoop - 1) * " & mainShotSteps & " + " & mainShotIdx & ") & " & qShot & ".png" & qShot & ", " & sRx & ", " & sRy & ", " & sRw & ", " & sRh & ")"
+                    mainShotIdx = mainShotIdx + 1
+                End If
             ElseIf vAct = "WRITE" Or vAct = "SHORTCUT" Then
                 FileVBS.WriteLine "    shl.SendKeys """ & vParam & """"
             End If
@@ -1151,6 +1427,7 @@ Sub GenerateVBSOnly()
         Set extTbody = document.getElementById("extraTableBody")
         Set extRows = extTbody.rows
         If document.getElementById("chkExtraSeq").checked And extRows.length > 0 Then
+            extShotIdx = 0
             FileVBS.WriteLine " ' --- POST LOOPS EXTRA SEQUENCE ---"
             For extRowIdx = 0 To extRows.length - 1
                 Set curRow = extRows(extRowIdx)
@@ -1197,6 +1474,29 @@ Sub GenerateVBSOnly()
                     scrollNotchesDownExt = 1
                     If IsNumeric(vParam) And CInt(vParam) > 0 Then scrollNotchesDownExt = CInt(vParam)
                     FileVBS.WriteLine "ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""mouse_event"""",""""JJJJJJ"""",2048,0,0," & (scrollNotchesDownExt * -120) & ",0)"""
+                ElseIf vAct = "SCREENSHOT" Then
+                    FileVBS.WriteLine "RunScreenshot shotFld & " & qShot & "\" & qShot & " & " & qShot & shotPrefix & "_" & qShot & " & (shotCounter + maxLoop * " & mainShotSteps & " + " & extShotIdx & ") & " & qShot & ".png" & qShot & ", -1, -1, -1, -1"
+                    extShotIdx = extShotIdx + 1
+                ElseIf vAct = "SCREENSHOT REGION" Then
+                    Dim eRParts, eFileName, eWH, eWxH, eRCoord, eRx, eRy, eRw, eRh
+                    eRParts = Split(vParam, ",")
+                    eFileName = Trim(eRParts(0))
+                    eWH = "-"
+                    If UBound(eRParts) >= 1 Then eWH = Trim(eRParts(1))
+                    eRx = "-" : eRy = "-"
+                    If InStr(vCoord, ",") > 0 Then
+                        eRCoord = Split(vCoord, ",")
+                        eRx = Trim(eRCoord(0)) : eRy = Trim(eRCoord(1))
+                    End If
+                    eRw = "-" : eRh = "-"
+                    If InStr(eWH, "x") > 0 Then
+                        eWxH = Split(eWH, "x")
+                        eRw = Trim(eWxH(0)) : eRh = Trim(eWxH(1))
+                    End If
+                    If IsNumeric(eRx) And IsNumeric(eRy) And IsNumeric(eRw) And IsNumeric(eRh) Then
+                        FileVBS.WriteLine "RunScreenshot shotFld & " & qShot & "\" & qShot & " & " & qShot & shotPrefix & "_" & qShot & " & (shotCounter + maxLoop * " & mainShotSteps & " + " & extShotIdx & ") & " & qShot & ".png" & qShot & ", " & eRx & ", " & eRy & ", " & eRw & ", " & eRh
+                        extShotIdx = extShotIdx + 1
+                    End If
                 ElseIf vAct = "WRITE" Or vAct = "SHORTCUT" Then
                     FileVBS.WriteLine "shl.SendKeys """ & vParam & """"
                 End If
