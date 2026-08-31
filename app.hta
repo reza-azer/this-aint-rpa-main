@@ -1,0 +1,1488 @@
+<!-- v1.4.1 -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WCK-v1.4.1 DynamicHold Edition</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=10">
+    <meta charset="UTF-8">
+    <hta:application 
+        id="appRecorder"
+        applicationname="wickedwriteinputandclicked"
+        border="thick"
+        caption="yes"
+        showintaskbar="yes"
+        singleinstance="yes"
+        sysmenu="yes"
+        windowstate="normal"
+    />
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body onbeforeunload="vbscript:AppCleanExit()">
+
+<div class="container">
+    <div class="tab-nav">
+        <button id="btnTabGen" class="tab-nav-btn tab-btn active" onclick="vbscript:SwitchTab('generator')">⚙️ Generator</button>
+        <button id="btnTabLaunch" class="tab-nav-btn tab-btn" onclick="vbscript:SwitchTab('launcher')">🚀 Launcher</button>
+    </div>
+
+    <!-- TAB 1: GENERATOR -->
+    <div id="tabGenerator" class="tab-content active">
+        <div class="card">
+            <h1 class="title-wicked"> WICKED </h2>
+            <p class="subtitle">write input and clicked - stable version 1.3 (DynamicHold Enabled) <br> 
+		use this for repetitive bored tasks, suggest when script is running, always supervise it <br>
+		brought to you by <b>2602884207</b>
+		</p>
+            
+            <!-- <div class="button-bar" style="margin-bottom: 20px;">
+                <div class="button-group">
+                    <button class="btn-primary" onclick="vbscript:BtnActionManual('CLICK')">🖱️ Click Manual</button>
+                    <button class="btn-primary" onclick="vbscript:BtnActionManual('DOUBLE CLICK')">🖱️⚡ Dbl Click</button>
+                    <button class="btn-primary" onclick="vbscript:BtnActionManual('RIGHT CLICK')">🖱️ Right Click</button>
+                    <button class="btn-primary" style="background-color: #0284c7;" onclick="vbscript:BtnActionManual('MOVE CURSOR ONLY')">📍 Move Cursor</button>
+                    <button class="btn-primary" onclick="vbscript:TriggerTextCapture()">⌨️ Type Text</button>
+                    <button class="btn-primary" onclick="vbscript:TriggerShortcutCapture()">🖮 Key Shortcut</button>
+                    <button class="btn-primary" style="background-color: #7c3aed;" onclick="vbscript:TriggerProgramCapture()">🛡️ Switch App</button>
+                </div>
+            </div> -->
+
+            <div class="info-box">
+                <b>GLOBAL MOUSE HOTKEYS (Auto Captures Position & Pixel Color):</b><br>
+                • <kbd>Shift + C</kbd> : Left Click | • <kbd>Shift + D</kbd> : Double Click | • <kbd>Shift + R</kbd> : Right Click | • <kbd>Shift + M</kbd> : Move Cursor Only<br>
+                • <kbd>Shift + W</kbd> : Scroll Up | • <kbd>Shift + S</kbd> : Scroll Down<br>
+                • <kbd>Shift + E</kbd> : Point & Shoot Edit Baris (Edit Koordinat & Warna Baris yang Dipilih)<br>
+                <b>GLOBAL KEYBOARD & RUNTIME HOTKEYS:</b><br>
+                • <kbd>Shift + T</kbd> : Type Text (Input Dialog) | • <kbd>Shift + K</kbd> : Shortcut Wizard (Exact OSK)<br>
+                • <kbd>Shift + P</kbd> : Switch & Focus Program Target App (Auto Force-Switch Active Window)<br><br>
+                🧠 <b>DynamicHold:</b> Ketika merekam posisi via Hotkey, warna pixel otomatis tercatat! Set kolom 'Target Color' ke Hex Color untuk DynamicHold, atau ubah/kosongkan ke <b>STATIC WAIT</b> jika hanya ingin delay biasa.<br>
+                💡 <b>MULTI-DRAG:</b> Tahan tombol <kbd>Ctrl</kbd> dan klik baris tabel untuk memilih beberapa baris sekaligus, lalu seret (drag & drop) untuk memindahkan semuanya bersamaan.
+            </div>
+        </div>
+
+        <div class="card">
+            <!-- TABEL 1: MAIN SEQUENCE -->
+            <div id="boxMainTable" class="table-wrapper active-table-box" onclick="vbscript:SetActiveTable('MAIN')">
+                <div class="table-title-bar">
+                    <h2 style="margin:0; font-size:18px;">🎯 MAIN SEQUENCE TABLE <span class="active-badge">ACTIVE TARGET</span></h2>
+                    <div>
+                        <button class="btn-primary" style="background-color: #0284c7; padding:6px 12px; font-size:11px;" onclick="vbscript:SaveSequenceMetadata()">💾 Save Sequence</button>
+                        <button class="btn-primary" style="background-color: #d97706; padding:6px 12px; font-size:11px;" onclick="vbscript:LoadSequenceMetadata()">📂 Load Sequence</button>
+                    </div>
+                </div>
+                <table class="guide-table" id="reviewTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 18%;">Nama Langkah</th>
+                            <th style="width: 13%;">Tipe Aksi</th>
+                            <th style="width: 16%;">Koordinat (X, Y)</th>
+                            <th style="width: 18%;">Target Color</th>
+                            <th style="width: 20%;">Value / Parameter</th>
+                            <th style="width: 10%;">Hold / Delay (ms)</th>
+                            <th style="width: 5%;">Hapus</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+
+            <!-- OPSI & TABEL 2: EXTRA SEQUENCE -->
+            <div style="margin-top: 15px; margin-bottom: 15px;">
+                <label style="font-weight: bold; color: #38bdf8; cursor: pointer; font-size: 14px;">
+                    <input type="checkbox" id="chkExtraSeq" onclick="vbscript:ToggleExtraSeqUI()"> ➕ Add Extra Sequence (Langkah ekstra yang dieksekusi setelah seluruh loop utama selesai)
+                </label>
+            </div>
+
+            <div id="extraSeqBox" class="extra-seq-container">
+                <div id="boxExtraTable" class="table-wrapper" onclick="vbscript:SetActiveTable('EXTRA')">
+                    <div class="table-title-bar">
+                        <h3 style="margin:0; color:#38bdf8; font-size:16px;">⚡ EXTRA SEQUENCE TABLE <span class="active-badge">ACTIVE TARGET</span></h3>
+                    </div>
+                    <table class="guide-table" id="extraReviewTable">
+                        <thead>
+                            <tr>
+                                <th style="width: 18%;">Nama Langkah</th>
+                                <th style="width: 13%;">Tipe Aksi</th>
+                                <th style="width: 16%;">Koordinat (X, Y)</th>
+                                <th style="width: 18%;">Target Color</th>
+                                <th style="width: 20%;">Value / Parameter</th>
+                                <th style="width: 10%;">Hold / Delay (ms)</th>
+                                <th style="width: 5%;">Hapus</th>
+                            </tr>
+                        </thead>
+                        <tbody id="extraTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <br>
+            <button class="btn-success" style="width: 100%; font-size: 15px; padding: 14px;" onclick="vbscript:GenerateVBSOnly()">💾 Generate Script Engine</button>
+        </div>
+    </div>
+
+    <!-- TAB 2: LAUNCHER -->
+    <div id="tabLauncher" class="tab-content">
+        <div class="card">
+            <h2>REAL-TIME EXECUTION OVERWATCH</h2>
+            <p class="subtitle">Eksekusi file otomasi yang telah di-generate dan pantau progress baris instruksi secara real-time.</p>
+            
+            <div class="monitor-grid">
+                <div class="monitor-box">
+                    <span class="monitor-label">STATUS ENGINE</span>
+                    <div class="status-scroll-container">
+                        <span id="monStatus" class="status-scroll-text" style="color: #64748b;">IDLE</span>
+                    </div>
+                </div>
+                <div class="monitor-box">
+                    <span class="monitor-label">LOOP TRACKER</span>
+                    <div id="monLoop" class="digital-7seg">0 / 0</div>
+                </div>
+                <div class="monitor-box">
+                    <span class="monitor-label">CURRENT EXECUTING STEP</span>
+                    <div id="monStep" style="font-size: 13px; text-align: center; color: #cbd5e1; font-weight:600;">-</div>
+                </div>
+            </div>
+
+            <!-- COMPACT FUN TIPS & JOKES WIDGET -->
+            <div class="tips-container">
+                <div id="boxAtomLoader" class="loader-3d-box">
+                    <div class="loader-3d">
+                        <div class="inner-ring one"></div>
+                        <div class="inner-ring two"></div>
+                        <div class="inner-ring three"></div>
+                    </div>
+                </div>
+                <div class="tips-text-content" id="txtFunTip">
+                    💡 System ready. Silakan tekan RUN ENGINE untuk memulai eksekusi otomasi.
+                </div>
+            </div>
+
+            <!-- DUAL PROGRESS BAR -->
+            <div class="progress-container">
+                <div class="progress-header">
+                    <span>STEPS PROGRESS</span>
+                    <span id="txtLoopProg">0%</span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div id="barLoopProg" class="progress-bar-fill"></div>
+                </div>
+            </div>
+
+            <div class="progress-container">
+                <div class="progress-header">
+                    <span>OVERALL PROGRESS</span>
+                    <span id="txtTotalProg">0%</span>
+                </div>
+                <div class="progress-bar-bg" id="bgTotalProg">
+                    <div id="barTotalProg" class="progress-bar-fill total"></div>
+                </div>
+            </div>
+
+            <div class="monitor-grid" style="margin-bottom: 20px;">
+                <div class="monitor-box" style="min-height: 60px; padding: 10px;">
+                    <span class="monitor-label">ELAPSED TIME</span>
+                    <div id="txtElapsedTime" style="font-size: 16px; font-weight: 700; color: #cbd5e1;">00:00:00</div>
+                </div>
+                <div class="monitor-box" style="min-height: 60px; padding: 10px;">
+                    <span class="monitor-label">EST TIME-TO-FINISHED</span>
+                    <div id="txtEstTime" style="font-size: 16px; font-weight: 700; color: #f59e0b;">00:00:00</div>
+                </div>
+            </div>
+
+            <div style="text-align: center; padding: 25px; background: #0b0f17; border-radius: 6px; border: 1px solid #1e293b;">
+                <button id="btnMasterEngine" class="btn-success" style="font-size: 15px; padding: 14px 50px; min-width: 240px;" onclick="vbscript:ToggleEngineState()">▶️ RUN ENGINE</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DIALOGS -->
+<div id="shortcutModal" class="modal-overlay">
+    <div class="modal-box">
+        <h3>Pilih Pre-built Shortcut Wizard</h3>
+        <div class="shortcut-grid">
+            <button class="btn-shortcut-item" onclick="vbscript:SelectShortcut('^c','Copy')">📄 Copy (Ctrl + C)</button>
+            <button class="btn-shortcut-item" onclick="vbscript:SelectShortcut('^v','Paste')">📋 Paste (Ctrl + V)</button>
+            <button class="btn-shortcut-item" onclick="vbscript:SelectShortcut('^z','Undo')">↩️ Undo (Ctrl + Z)</button>
+            <button class="btn-shortcut-item" onclick="vbscript:SelectShortcut('^y','Redo')">↪️ Redo (Ctrl + Y)</button>
+            <button class="btn-shortcut-item" onclick="vbscript:SelectShortcut('^s','Save')">💾 Save File (Ctrl + S)</button>
+            <button class="btn-shortcut-item" onclick="vbscript:SelectShortcut('%{TAB}','AltTab')">🔄 Alt + TAB</button>
+            <button class="btn-shortcut-item" onclick="vbscript:SelectShortcut('{ENTER}','Enter')">↩️ Enter Key</button>
+            <button class="btn-shortcut-item" onclick="vbscript:SelectShortcut('{TAB}','Tab')">⇥ Tab Key</button>
+            <button class="btn-shortcut-custom btn-shortcut-item" onclick="vbscript:OpenOSKModal()">⌨️ INTERACTIVE VISUAL OSK BUILDER...</button>
+        </div>
+        <button class="btn-modal-close" onclick="vbscript:CloseShortcutModal()">❌ Batal</button>
+    </div>
+</div>
+
+<div id="oskModal" class="modal-overlay" style="z-index: 1001;">
+    <div class="modal-box" style="width: 820px; background: #111827; border: 1px solid #3b82f6;">
+        <h3 style="color:#ffffff; margin-bottom:10px;">Keyboard Combination Builder</h3>
+        <div style="background:#0b0f17; padding:12px 15px; border-radius:4px; font-weight:700; margin-bottom:15px; font-size:14px; text-align:left; color:#38bdf8; border: 1px solid #1e293b;">
+            SendKeys Script Output: <span id="oskPreview" style="color:#f59e0b;">-</span>
+        </div>
+        <div class="exact-osk-window">
+            <table class="osk-table-row">
+                <tr>
+                    <td width="7%"><div class="k-btn modifier" onclick="vbscript:PressBaseKey('{ESC}')">Esc</div></td>
+                    <td width="6%"><div class="k-btn" onclick="vbscript:PressBaseKey('`')"><span class="sub-txt">~</span>`</div></td>
+                    <td width="6%"><div class="k-btn" onclick="vbscript:PressBaseKey('1')"><span class="sub-txt">!</span>1</div></td>
+                    <td width="6%"><div class="k-btn" onclick="vbscript:PressBaseKey('2')"><span class="sub-txt">@</span>2</div></td>
+                    <td width="6%"><div class="k-btn" onclick="vbscript:PressBaseKey('3')"><span class="sub-txt">#</span>3</div></td>
+                    <td width="6%"><div class="k-btn" onclick="vbscript:PressBaseKey('4')"><span class="sub-txt">$</span>4</div></td>
+                    <td width="6%"><div class="k-btn" onclick="vbscript:PressBaseKey('5')"><span class="sub-txt">%</span>5</div></td>
+                    <td width="6%"><div class="k-btn" onclick="vbscript:PressBaseKey('6')"><span class="sub-txt">^</span>6</div></td>
+                    <td width="6%"><div class="k-btn" onclick="vbscript:PressBaseKey('7')"><span class="sub-txt">&amp;</span>7</div></td>
+                    <td width="6%"><div class="k-btn" onclick="vbscript:PressBaseKey('8')"><span class="sub-txt">*</span>8</div></td>
+                    <td width="6%"><div class="k-btn" onclick="vbscript:PressBaseKey('9')"><span class="sub-txt">(</span>9</div></td>
+                    <td width="6%"><div class="k-btn" onclick="vbscript:PressBaseKey('0')"><span class="sub-txt">)</span>0</div></td>
+                    <td width="6%"><div class="k-btn" onclick="vbscript:PressBaseKey('-')"><span class="sub-txt">_</span>-</div></td>
+                    <td width="6%"><div class="k-btn" onclick="vbscript:PressBaseKey('=')"><span class="sub-txt">+</span>=</div></td>
+                    <td width="8%"><div class="k-btn modifier" onclick="vbscript:PressBaseKey('{BACKSPACE}')">🖮 ⌫</div></td>
+                </tr>
+            </table>
+            <table class="osk-table-row">
+                <tr>
+                    <td width="9%"><div class="k-btn modifier" onclick="vbscript:PressBaseKey('{TAB}')">Tab</div></td>
+                    <td width="6.5%"><div class="k-btn" onclick="vbscript:PressBaseKey('q')">q</div></td>
+                    <td width="6.5%"><div class="k-btn" onclick="vbscript:PressBaseKey('w')">w</div></td>
+                    <td width="6.5%"><div class="k-btn" onclick="vbscript:PressBaseKey('e')">e</div></td>
+                    <td width="6.5%"><div class="k-btn" onclick="vbscript:PressBaseKey('r')">r</div></td>
+                    <td width="6.5%"><div class="k-btn" onclick="vbscript:PressBaseKey('t')">t</div></td>
+                    <td width="6.5%"><div class="k-btn" onclick="vbscript:PressBaseKey('y')">y</div></td>
+                    <td width="6.5%"><div class="k-btn" onclick="vbscript:PressBaseKey('u')">u</div></td>
+                    <td width="6.5%"><div class="k-btn" onclick="vbscript:PressBaseKey('i')">i</div></td>
+                    <td width="6.5%"><div class="k-btn" onclick="vbscript:PressBaseKey('o')">o</div></td>
+                    <td width="6.5%"><div class="k-btn" onclick="vbscript:PressBaseKey('p')">p</div></td>
+                    <td width="6.5%"><div class="k-btn" onclick="vbscript:PressBaseKey('[')"><span class="sub-txt">{</span>[</div></td>
+                    <td width="6.5%"><div class="k-btn" onclick="vbscript:PressBaseKey(']')"><span class="sub-txt">}</span>]</div></td>
+                    <td width="12.5%"><div class="k-btn modifier" onclick="vbscript:PressBaseKey('{ENTER}')">Enter</div></td>
+                </tr>
+            </table>
+            <table class="osk-table-row">
+                <tr>
+                    <td width="11%"><div id="k_CAPSLOCK" class="k-btn modifier" onclick="vbscript:PressBaseKey('{CAPSLOCK}')">Caps</div></td>
+                    <td width="6.5%"><div class="k-btn" onclick="vbscript:PressBaseKey('a')">a</div></td>
+                    <td width="6.5%"><div class="k-btn" onclick="vbscript:PressBaseKey('s')">s</div></td>
+                    <td width="6.5%"><div class="k-btn" onclick="vbscript:PressBaseKey('d')">d</div></td>
+                    <td width="6.5%"><div class="k-btn" onclick="vbscript:PressBaseKey('f')">f</div></td>
+                    <td width="6.5%"><div class="k-btn" onclick="vbscript:PressBaseKey('g')">g</div></td>
+                    <td width="6.5%"><div class="k-btn" onclick="vbscript:PressBaseKey('h')">h</div></td>
+                    <td width="6.5%"><div class="k-btn" onclick="vbscript:PressBaseKey('j')">j</div></td>
+                    <td width="6.5%"><div class="k-btn" onclick="vbscript:PressBaseKey('k')">k</div></td>
+                    <td width="6.5%"><div class="k-btn" onclick="vbscript:PressBaseKey('l')">l</div></td>
+                    <td width="6.5%"><div class="k-btn" onclick="vbscript:PressBaseKey(';')"><span class="sub-txt">:</span>;</div></td>
+                    <td width="6.5%"><div class="k-btn" onclick='vbscript:PressBaseKey(Chr(39))'><span class="sub-txt">&quot;</span>'</div></td>
+                    <td width="6.5%"><div class="k-btn" onclick="vbscript:PressBaseKey('\')"><span class="sub-txt">|</span>\</div></td>
+                </tr>
+            </table>
+            <table class="osk-table-row">
+                <tr>
+                    <td width="15%"><div id="k_SHIFT" class="k-btn modifier" onclick="vbscript:ToggleModifier('SHIFT')">Shift</div></td>
+                    <td width="6.5%"><div class="k-btn" onclick="vbscript:PressBaseKey('z')">z</div></td>
+                    <td width="6.5%"><div class="k-btn" onclick="vbscript:PressBaseKey('x')">x</div></td>
+                    <td width="6.5%"><div class="k-btn" onclick="vbscript:PressBaseKey('c')">c</div></td>
+                    <td width="6.5%"><div class="k-btn" onclick="vbscript:PressBaseKey('v')">v</div></td>
+                    <td width="6.5%"><div class="k-btn" onclick="vbscript:PressBaseKey('b')">b</div></td>
+                    <td width="6.5%"><div class="k-btn" onclick="vbscript:PressBaseKey('n')">n</div></td>
+                    <td width="6.5%"><div class="k-btn" onclick="vbscript:PressBaseKey('m')">m</div></td>
+                    <td width="6.5%"><div class="k-btn" onclick="vbscript:PressBaseKey(',')"><span class="sub-txt">&lt;</span>,</div></td>
+                    <td width="6.5%"><div class="k-btn" onclick="vbscript:PressBaseKey('.')"><span class="sub-txt">&gt;</span>.</div></td>
+                    <td width="6.5%"><div class="k-btn" onclick="vbscript:PressBaseKey('/')"><span class="sub-txt">?</span>/</div></td>
+                    <td width="6.5%"><div class="k-btn modifier" onclick="vbscript:PressBaseKey('{UP}')">▲</div></td>
+                    <td width="8%"><div id="k_SHIFT_R" class="k-btn modifier" onclick="vbscript:ToggleModifier('SHIFT')">Shift</div></td>
+                    <td width="6.5%"><div class="k-btn modifier" onclick="vbscript:PressBaseKey('{DEL}')">Del</div></td>
+                </tr>
+            </table>
+            <table class="osk-table-row">
+                <tr>
+                    <td width="9.5%"><div id="k_CTRL" class="k-btn modifier" onclick="vbscript:ToggleModifier('CTRL')">Ctrl</div></td>
+                    <td width="9.5%"><div class="k-btn modifier" onclick="vbscript:PressBaseKey('^{ESC}')">⊞</div></td>
+                    <td width="9.5%"><div id="k_ALT" class="k-btn modifier" onclick="vbscript:ToggleModifier('ALT')">Alt</div></td>
+                    <td width="42.5%"><div class="k-btn" style="color:transparent;" onclick="vbscript:PressBaseKey(' ')">Spacebar</div></td>
+                    <td width="9.5%"><div id="k_CTRL_R" class="k-btn modifier" onclick="vbscript:ToggleModifier('CTRL')">Ctrl</div></td>
+                    <td width="6.5%"><div class="k-btn modifier" onclick="vbscript:PressBaseKey('{LEFT}')">◀</div></td>
+                    <td width="6.5%"><div class="k-btn modifier" onclick="vbscript:PressBaseKey('{DOWN}')">▼</div></td>
+                    <td width="6.5%"><div class="k-btn modifier" onclick="vbscript:PressBaseKey('{RIGHT}')">▶</div></td>
+                </tr>
+            </table>
+        </div>
+        <div style="margin-bottom: 15px; text-align: left; padding: 0 10px;">
+            <label style="font-weight: 700; font-size:13px; display:block; margin-bottom:5px; color:#ffffff;">Nama Custom Shortcut:</label>
+            <input type="text" id="oskShortcutName" class="input-inline" style="width:100%; padding:8px; background:#0b0f17; color:#ffffff; border:1px solid #334155;" value="Custom Combo">
+        </div>
+        <button class="btn-success" style="padding: 10px 25px;" onclick="vbscript:SaveOSKShortcut()">Simpan & Terapkan</button>
+        <button class="btn-modal-close" style="margin-left:8px;" onclick="vbscript:CloseOSKModal()">❌ Batal</button>
+    </div>
+</div>
+
+<div id="programModal" class="modal-overlay">
+    <div class="modal-box">
+        <h3>Target Window & Switch Focus Application</h3>
+        <p style="font-size:12px; color:#94a3b8; margin-top:-10px; margin-bottom:20px;">Sistem akan otomatis memaksa Windows fokus ke aplikasi ini sebelum eksekusi berlanjut.</p>
+        <div class="shortcut-grid">
+            <button class="btn-shortcut-item" onclick="vbscript:SelectProgram('Microsoft Word','winword.exe')">📄 Word (winword.exe)</button>
+            <button class="btn-shortcut-item" onclick="vbscript:SelectProgram('Microsoft Excel','excel.exe')">📊 Excel (excel.exe)</button>
+            <button class="btn-shortcut-item" onclick="vbscript:SelectProgram('Notepad','notepad.exe')">📝 Notepad (notepad.exe)</button>
+            <button class="btn-shortcut-item" onclick="vbscript:SelectProgram('Sticky Notes','Microsoft.Notes.exe')">📌 Sticky Notes</button>
+            <button class="btn-shortcut-item" onclick="vbscript:SelectProgram('Microsoft Edge','msedge.exe')">🌐 Edge (msedge.exe)</button>
+            <button class="btn-shortcut-item" onclick="vbscript:SelectProgram('Google Chrome','chrome.exe')">🌐 Chrome (chrome.exe)</button>
+            <button class="btn-shortcut-item" onclick="vbscript:SelectProgram('Mozilla Firefox','firefox.exe')">🌐 Firefox (firefox.exe)</button>
+            <button class="btn-shortcut-item btn-shortcut-custom" onclick="vbscript:SelectProgram('CUSTOM','')">🛠️ TARGET PROSES KUSTOM...</button>
+        </div>
+        <button class="btn-modal-close" onclick="vbscript:CloseProgramModal()">❌ Batal</button>
+    </div>
+</div>
+
+<script type="text/javascript">
+    var draggedRows = [];
+    var lastSelectedRow = null;
+
+    function InitDragAndDropListeners(rowElement) {
+        rowElement.setAttribute("draggable", "true");
+
+        // Fitur Multi-Select Baris Tabel
+        rowElement.addEventListener("click", function(e) {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'BUTTON') {
+                return;
+            }
+            if (e.ctrlKey) {
+                this.classList.toggle("selected-row");
+            } else {
+                var tbody = this.parentNode;
+                var rows = tbody.querySelectorAll("tr");
+                for (var i = 0; i < rows.length; i++) {
+                    rows[i].classList.remove("selected-row");
+                }
+                this.classList.add("selected-row");
+            }
+            lastSelectedRow = this;
+        });
+
+        // Drag & Drop Sekaligus Banyak Baris
+        rowElement.addEventListener("dragstart", function(e) {
+            var tbody = this.parentNode;
+            var selected = tbody.querySelectorAll("tr.selected-row");
+            if (selected.length === 0 || Array.prototype.indexOf.call(selected, this) === -1) {
+                for (var i = 0; i < selected.length; i++) {
+                    selected[i].classList.remove("selected-row");
+                }
+                this.classList.add("selected-row");
+                draggedRows = [this];
+            } else {
+                draggedRows = Array.prototype.slice.call(selected);
+            }
+
+            if (e.dataTransfer) {
+                e.dataTransfer.effectAllowed = "move";
+                try { e.dataTransfer.setData("Text", this.id || ""); } catch(err) {}
+            }
+        });
+
+        rowElement.addEventListener("dragover", function(e) {
+            if (e.preventDefault) { e.preventDefault(); }
+            this.classList.add("drag-over");
+            return false;
+        });
+
+        rowElement.addEventListener("dragleave", function(e) { 
+            this.classList.remove("drag-over"); 
+        });
+
+        rowElement.addEventListener("drop", function(e) {
+            if (e.preventDefault) { e.preventDefault(); }
+            if (e.stopPropagation) { e.stopPropagation(); }
+            this.classList.remove("drag-over");
+
+            if (draggedRows.length > 0 && draggedRows.indexOf(this) === -1) {
+                var tbody = this.parentNode;
+                var allRows = Array.prototype.slice.call(tbody.children);
+                var targetIdx = allRows.indexOf(this);
+
+                draggedRows.forEach(function(row) {
+                    var currentIdx = Array.prototype.slice.call(tbody.children).indexOf(row);
+                    if (currentIdx < targetIdx) {
+                        tbody.insertBefore(row, this.nextSibling);
+                    } else {
+                        tbody.insertBefore(row, this);
+                    }
+                }, this);
+            }
+            return false;
+        });
+    }
+
+    function UpdateSelectedRowCoordinatesAndColor(x, y, hexColor) {
+        var activeTableId = (window.activeTargetTable === 'MAIN') ? 'tableBody' : 'extraTableBody';
+        var tbody = document.getElementById(activeTableId);
+        if (!tbody) return false;
+        
+        var selected = tbody.querySelector("tr.selected-row");
+        if (!selected) return false;
+
+        var coordInput = selected.querySelector(".status-coord");
+        var colorInput = selected.querySelector(".status-color");
+        
+        if (coordInput) coordInput.value = x + ", " + y;
+        if (colorInput) {
+            colorInput.value = hexColor;
+            var chip = selected.querySelector(".color-preview-chip");
+            if (chip) chip.style.backgroundColor = (hexColor.indexOf("#") === 0) ? hexColor : "transparent";
+        }
+        return true;
+    }
+
+    function AnimateStatusText(newText, newColor) {
+        var el = document.getElementById("monStatus");
+        if (!el || el.innerText === newText) return;
+        el.className = "status-scroll-text scroll-out";
+        setTimeout(function() {
+            el.innerText = newText;
+            el.style.color = newColor;
+            el.className = "status-scroll-text scroll-in";
+            setTimeout(function() {
+                el.className = "status-scroll-text";
+            }, 50);
+        }, 200);
+    }
+
+    function UpdateColorChip(inputId, chipId) {
+        var val = document.getElementById(inputId).value.trim();
+        var chip = document.getElementById(chipId);
+        if (val.indexOf("#") === 0 && (val.length === 7)) {
+            chip.style.backgroundColor = val;
+        } else {
+            chip.style.backgroundColor = "transparent";
+        }
+    }
+</script>
+
+<script language="vbscript">
+Sub AppCleanExit()
+     On Error Resume Next
+     ' Ensure the primary HTA Excel process is gracefully destroyed upon clicking 'X'
+     If IsObject(objExcelEngine) Then
+         objExcelEngine.Quit
+         Set objExcelEngine = Nothing
+     End If
+
+     ' Ensure temporary status logs are cleared out
+     If FSO.FileExists(PathStatusTmp) Then FSO.DeleteFile(PathStatusTmp)
+ End Sub
+
+    Dim stepsCount, extraStepsCount, activeTargetTable
+    stepsCount = 0
+    extraStepsCount = 0
+    activeTargetTable = "MAIN"
+    
+    Dim timerId, loopOpt
+    Dim engineActive, isLaunchingState, isTerminatingState
+    engineActive = False
+    isLaunchingState = False
+    isTerminatingState = False
+    
+    Dim startTime, prepMsgIdx, lastEstUpdateSec, tipTimerCounter
+    startTime = 0
+    prepMsgIdx = 0
+    lastEstUpdateSec = -10
+    tipTimerCounter = 0
+
+    Dim arrFunTips
+    arrFunTips = Array( _
+        "💡 TIPS: DynamicHold akan menunggu pixel warna target sebelum melakukan klik!", _
+        "💡 TIPS: Gunakan Shift+K untuk membuka Visual Keyboard Builder yang lengkap!", _
+        "🤣 JOKES: Mau PL1 dong...", _
+        "💡 TIPS: Kalo udah teken Terminate/Run Sekali, gausah teken lagi bro!", _
+        "🤣 JOKES: Yang baca ga gay!", _
+        "💡 TIPS: Kamu bisa menukar urutan baris dengan drag & drop sekaligus banyak baris.", _
+        "🤣 JOKES: English or Spanish?...", _
+        "💡 TIPS: Gunakan Shift+E untuk Point & Shoot edit koordinat dan warna pada baris terpilih.", _
+        "🤣 JOKES: Tinggalin aja, gausah ditonton terus napa, ntar juga kelar..." _
+    )
+
+    Dim isCtrlActive, isShiftActive, isAltActive, selectedBaseKey
+    isCtrlActive = False: isShiftActive = False: isAltActive = False: selectedBaseKey = ""
+
+    Dim wshShell, FSO, PathStatusTmp, PathPauseTmp, objExcelEngine
+    Set wshShell = CreateObject("WScript.Shell")
+    Set FSO = CreateObject("Scripting.FileSystemObject")
+    
+    PathStatusTmp = wshShell.CurrentDirectory & "\wstatus.tmp"
+    PathPauseTmp = wshShell.CurrentDirectory & "\trench_pause.tmp"
+
+    Sub Window_OnLoad
+        window.resizeTo 1250, 920
+        On Error Resume Next
+        Set objExcelEngine = CreateObject("Excel.Application")
+        document.body.focus()
+        Randomize
+    End Sub
+
+    Sub SetActiveTable(tableName)
+        activeTargetTable = tableName
+        window.activeTargetTable = tableName
+        If tableName = "MAIN" Then
+            document.getElementById("boxMainTable").className = "table-wrapper active-table-box"
+            document.getElementById("boxExtraTable").className = "table-wrapper"
+        Else
+            document.getElementById("boxMainTable").className = "table-wrapper"
+            document.getElementById("boxExtraTable").className = "table-wrapper active-table-box"
+        End If
+    End Sub
+
+    Sub SwitchTab(tabName)
+        document.getElementById("tabGenerator").className = "tab-content"
+        document.getElementById("tabLauncher").className = "tab-content"
+        document.getElementById("btnTabGen").className = "tab-btn"
+        document.getElementById("btnTabLaunch").className = "tab-btn"
+        
+        If tabName = "generator" Then
+            document.getElementById("tabGenerator").className = "tab-content active"
+            document.getElementById("btnTabGen").className = "tab-btn active"
+        Else
+            document.getElementById("tabLauncher").className = "tab-content active"
+            document.getElementById("btnTabLaunch").className = "tab-btn active"
+            timerId = window.setInterval("vbscript:ReadStatusLog()", 400)
+        End If
+    End Sub
+
+    Sub ToggleExtraSeqUI()
+        Dim chk
+        Set chk = document.getElementById("chkExtraSeq")
+        If chk.checked Then
+            document.getElementById("extraSeqBox").className = "extra-seq-container active"
+            Call SetActiveTable("EXTRA")
+            If extraStepsCount = 0 Then Call AddActionRowRouter("CLICK", "-", "-", "STATIC WAIT", "-", 600)
+        Else
+            document.getElementById("extraSeqBox").className = "extra-seq-container"
+            Call SetActiveTable("MAIN")
+        End If
+    End Sub
+
+    Sub GetTrueWindowsCursorAndColor(ByRef outX, ByRef outY, ByRef outHexColor)
+        On Error Resume Next
+        If objExcelEngine Is Nothing Then Set objExcelEngine = CreateObject("Excel.Application")
+        
+        Dim fullPos, hexPos, hexX, hexY
+        fullPos = objExcelEngine.ExecuteExcel4Macro("CALL(""user32"",""GetMessagePos"",""J"")")
+        hexPos = Hex(fullPos)
+        Do While Len(hexPos) < 8 : hexPos = "0" & hexPos : Loop
+        hexX = Right(hexPos, 4) : hexY = Left(hexPos, 4)
+        outX = CLng("&H" & hexX) : outY = CLng("&H" & hexY)
+        If outX > 32767 Then outX = outX - 65536
+        If outY > 32767 Then outY = outY - 65536
+
+        ' Fetch Screen Pixel Color using GDI32 API
+        Dim hDC, rgbLong, rVal, gVal, bVal, hexR, hexG, hexB
+        hDC = objExcelEngine.ExecuteExcel4Macro("CALL(""user32"",""GetDC"",""JJ"",0)")
+        rgbLong = objExcelEngine.ExecuteExcel4Macro("CALL(""gdi32"",""GetPixel"",""JJJJ""," & hDC & "," & outX & "," & outY & ")")
+        Call objExcelEngine.ExecuteExcel4Macro("CALL(""user32"",""ReleaseDC"",""JJJ"",0," & hDC & ")")
+
+        If rgbLong >= 0 Then
+            rVal = rgbLong Mod 256
+            gVal = (rgbLong \ 256) Mod 256
+            bVal = (rgbLong \ 65536) Mod 256
+            
+            hexR = Right("0" & Hex(rVal), 2)
+            hexG = Right("0" & Hex(gVal), 2)
+            hexB = Right("0" & Hex(bVal), 2)
+            outHexColor = "#" & hexR & hexG & hexB
+        Else
+            outHexColor = "STATIC WAIT"
+        End If
+    End Sub
+
+    Sub document_onkeydown
+        Dim keyCode, shiftPressed
+        keyCode = window.event.keyCode
+        shiftPressed = window.event.shiftKey
+        
+        If shiftPressed Then
+            Dim realX, realY, realColor
+            Call GetTrueWindowsCursorAndColor(realX, realY, realColor)
+            Select Case keyCode
+                Case 67 ' Shift + C
+                    window.event.returnValue = False
+                    Call AddActionRowRouter("CLICK", realX, realY, realColor, "-", 600)
+                Case 68 ' Shift + D
+                    window.event.returnValue = False
+                    Call AddActionRowRouter("DOUBLE CLICK", realX, realY, realColor, "-", 600)
+                Case 82 ' Shift + R
+                    window.event.returnValue = False
+                    Call AddActionRowRouter("RIGHT CLICK", realX, realY, realColor, "-", 600)
+                Case 77 ' Shift + M (Move Cursor Only)
+                    window.event.returnValue = False
+                    Call AddActionRowRouter("MOVE CURSOR ONLY", realX, realY, realColor, "-", 600)
+                Case 87 ' Shift + W (Scroll Up)
+                    window.event.returnValue = False
+                    Call AddActionRowRouter("SCROLL UP", "-", "-", "STATIC WAIT", "1", 300)
+                Case 83 ' Shift + S (Scroll Down)
+                    window.event.returnValue = False
+                    Call AddActionRowRouter("SCROLL DOWN", "-", "-", "STATIC WAIT", "1", 300)
+                Case 69 ' Shift + E (Edit Baris Terpilih Point & Shoot)
+                    window.event.returnValue = False
+                    If Not UpdateSelectedRowCoordinatesAndColor(realX, realY, realColor) Then
+                        MsgBox "Pilih (klik) baris tabel terlebih dahulu untuk mengedit koordinat/warna!", 48, "Point & Shoot Edit"
+                    End If
+                Case 84 ' Shift + T
+                    window.event.returnValue = False
+                    Call TriggerTextCapture()
+                Case 75 ' Shift + K
+                    window.event.returnValue = False
+                    Call TriggerShortcutCapture()
+                Case 80 ' Shift + P
+                    window.event.returnValue = False
+                    Call TriggerProgramCapture()
+            End Select
+        End If
+    End Sub
+
+    Sub TriggerTextCapture()
+        Dim txt
+        txt = InputBox("Masukkan parameter teks yang ingin diketik secara otomatis:", "Type Text Input")
+        If txt <> "" Then Call AddActionRowRouter("WRITE", "-", "-", "STATIC WAIT", txt, 600)
+    End Sub
+
+    Sub TriggerShortcutCapture()
+        document.getElementById("shortcutModal").style.display = "flex"
+    End Sub
+
+    Sub CloseShortcutModal()
+        document.getElementById("shortcutModal").style.display = "none"
+        document.body.focus()
+    End Sub
+
+    Sub SelectShortcut(valKey, defaultName)
+        If valKey <> "" Then Call AddActionRowRouter("SHORTCUT", "-", "-", "STATIC WAIT", valKey, 600)
+        If activeTargetTable = "MAIN" Then
+            document.getElementById("inp_name_" & stepsCount).value = "Shortcut: " & defaultName
+        Else
+            document.getElementById("ext_inp_name_" & extraStepsCount).value = "Shortcut: " & defaultName
+        End If
+        Call CloseShortcutModal()
+    End Sub
+
+    Sub OpenOSKModal()
+        isCtrlActive = False: isShiftActive = False: isAltActive = False: selectedBaseKey = ""
+        document.getElementById("k_CTRL").className = "k-btn modifier"
+        document.getElementById("k_CTRL_R").className = "k-btn modifier"
+        document.getElementById("k_SHIFT").className = "k-btn modifier"
+        document.getElementById("k_SHIFT_R").className = "k-btn modifier"
+        document.getElementById("k_ALT").className = "k-btn modifier"
+        document.getElementById("oskShortcutName").value = "Custom Combo"
+        Call UpdateOSKPreview()
+        document.getElementById("oskModal").style.display = "flex"
+    End Sub
+
+    Sub CloseOSKModal()
+        document.getElementById("oskModal").style.display = "none"
+    End Sub
+
+    Sub ToggleModifier(modName)
+        If modName = "CTRL" Then
+            isCtrlActive = Not isCtrlActive
+            If isCtrlActive Then 
+                document.getElementById("k_CTRL").className = "k-btn modifier active"
+                document.getElementById("k_CTRL_R").className = "k-btn modifier active"
+            Else 
+                document.getElementById("k_CTRL").className = "k-btn modifier"
+                document.getElementById("k_CTRL_R").className = "k-btn modifier"
+            End If
+        ElseIf modName = "SHIFT" Then
+            isShiftActive = Not isShiftActive
+            If isShiftActive Then 
+                document.getElementById("k_SHIFT").className = "k-btn modifier active"
+                document.getElementById("k_SHIFT_R").className = "k-btn modifier active"
+            Else 
+                document.getElementById("k_SHIFT").className = "k-btn modifier"
+                document.getElementById("k_SHIFT_R").className = "k-btn modifier"
+            End If
+        ElseIf modName = "ALT" Then
+            isAltActive = Not isAltActive
+            If isAltActive Then document.getElementById("k_ALT").className = "k-btn modifier active" Else document.getElementById("k_ALT").className = "k-btn modifier"
+        End If
+        Call UpdateOSKPreview()
+    End Sub
+
+    Sub PressBaseKey(keyVal)
+        selectedBaseKey = keyVal
+        Call UpdateOSKPreview()
+    End Sub
+
+    Sub UpdateOSKPreview()
+        Dim previewStr
+        previewStr = ""
+        If isCtrlActive Then previewStr = previewStr & "Ctrl + "
+        If isShiftActive Then previewStr = previewStr & "Shift + "
+        If isAltActive Then previewStr = previewStr & "Alt + "
+        If selectedBaseKey <> "" Then
+            Dim displayKey
+            displayKey = Replace(Replace(Replace(Replace(Replace(selectedBaseKey, "{", ""), "}", ""), "UP", "▲"), "DOWN", "▼"), "LEFT", "◀")
+            previewStr = previewStr & UCase(displayKey)
+        Else
+            previewStr = previewStr & "..."
+        End If
+        document.getElementById("oskPreview").innerText = previewStr
+    End Sub
+
+    Sub SaveOSKShortcut()
+        Dim sendKeysCode, stepName
+        sendKeysCode = ""
+        stepName = document.getElementById("oskShortcutName").value
+        If selectedBaseKey = "" Then MsgBox "Pilih tombol dasar keyboard virtual.", 48, "Notifikasi" : Exit Sub
+        If isCtrlActive Then sendKeysCode = sendKeysCode & "^"
+        If isShiftActive Then sendKeysCode = sendKeysCode & "+"
+        If isAltActive Then sendKeysCode = sendKeysCode & "%"
+        sendKeysCode = sendKeysCode & selectedBaseKey
+        
+        Call AddActionRowRouter("SHORTCUT", "-", "-", "STATIC WAIT", sendKeysCode, 600)
+        If activeTargetTable = "MAIN" Then
+            document.getElementById("inp_name_" & stepsCount).value = "Key: " & stepName
+        Else
+            document.getElementById("ext_inp_name_" & extraStepsCount).value = "Key: " & stepName
+        End If
+        Call CloseOSKModal()
+        Call CloseShortcutModal()
+    End Sub
+
+    Sub TriggerProgramCapture()
+        document.getElementById("programModal").style.display = "flex"
+    End Sub
+
+    Sub CloseProgramModal()
+        document.getElementById("programModal").style.display = "none"
+        document.body.focus()
+    End Sub
+
+    Sub SelectProgram(appName, procName)
+        Dim finalProc, displayTitle
+        finalProc = procName : displayTitle = appName
+        If finalProc = "" Then
+            finalProc = InputBox("Masukkan nama executable target (contoh: Notepad):", "Switch Window Target")
+            displayTitle = "Focus [" & finalProc & "]"
+        End If
+        If finalProc <> "" Then
+            Call AddActionRowRouter("SWITCH_APP", "-", "-", "STATIC WAIT", finalProc, 800)
+            If activeTargetTable = "MAIN" Then
+                document.getElementById("inp_name_" & stepsCount).value = "Switch: " & displayTitle
+            Else
+                document.getElementById("ext_inp_name_" & extraStepsCount).value = "Switch: " & displayTitle
+            End If
+        End If
+        Call CloseProgramModal()
+    End Sub
+
+    Sub BtnActionManual(act)
+        Dim manualCoord
+        manualCoord = InputBox("Masukkan koordinat manual X, Y:", "Input Manual", "250, 250")
+        If manualCoord <> "" Then
+            Dim parts
+            parts = Split(manualCoord, ",")
+            If UBound(parts) = 1 Then Call AddActionRowRouter(act, Trim(parts(0)), Trim(parts(1)), "STATIC WAIT", "-", 600)
+        End If
+    End Sub
+
+    Sub AddActionRowRouter(actionType, mouseX, mouseY, colorVal, paramVal, delayMs)
+        If activeTargetTable = "MAIN" Then
+            Call AddMainActionRow(actionType, mouseX, mouseY, colorVal, paramVal, delayMs)
+        Else
+            Call AddExtraActionRow(actionType, mouseX, mouseY, colorVal, paramVal, delayMs)
+        End If
+    End Sub
+
+    Sub AddMainActionRow(actionType, mouseX, mouseY, colorVal, paramVal, delayMs)
+        stepsCount = stepsCount + 1
+        Dim tableBody, row, bgChip
+        Set tableBody = document.getElementById("tableBody")
+        Set row = tableBody.insertRow(-1)
+        row.id = "row_" & stepsCount
+        
+        bgChip = "transparent"
+        If Left(colorVal, 1) = "#" And Len(colorVal) = 7 Then bgChip = colorVal
+
+        row.insertCell(0).innerHTML = "<input type='text' class='input-inline status-name' id='inp_name_" & stepsCount & "' value='Langkah " & stepsCount & "'>"
+        row.insertCell(1).innerHTML = "<select class='select-inline status-act' id='inp_act_" & stepsCount & "'>" & _
+            "<option value='CLICK'" & IIf(actionType="CLICK"," selected","") & ">CLICK</option>" & _
+            "<option value='DOUBLE CLICK'" & IIf(actionType="DOUBLE CLICK"," selected","") & ">DOUBLE CLICK</option>" & _
+            "<option value='RIGHT CLICK'" & IIf(actionType="RIGHT CLICK"," selected","") & ">RIGHT CLICK</option>" & _
+            "<option value='MOVE CURSOR ONLY'" & IIf(actionType="MOVE CURSOR ONLY"," selected","") & ">MOVE CURSOR ONLY</option>" & _
+            "<option value='SCROLL UP'" & IIf(actionType="SCROLL UP"," selected","") & ">SCROLL UP</option>" & _
+            "<option value='SCROLL DOWN'" & IIf(actionType="SCROLL DOWN"," selected","") & ">SCROLL DOWN</option>" & _
+            "<option value='WRITE'" & IIf(actionType="WRITE"," selected","") & ">WRITE</option>" & _
+            "<option value='SHORTCUT'" & IIf(actionType="SHORTCUT"," selected","") & ">SHORTCUT</option>" & _
+            "<option value='SWITCH_APP'" & IIf(actionType="SWITCH_APP"," selected","") & ">SWITCH_APP</option>" & _
+            "</select>"
+        row.insertCell(2).innerHTML = "<input type='text' class='input-inline status-coord' id='inp_coord_" & stepsCount & "' value='" & mouseX & ", " & mouseY & "'>"
+        row.insertCell(3).innerHTML = "<span class='color-preview-chip' id='chip_" & stepsCount & "' style='background-color:" & bgChip & ";'></span>" & _
+            "<input type='text' class='input-inline status-color' id='inp_color_" & stepsCount & "' style='width:75%;' value='" & colorVal & "' onkeyup='UpdateColorChip(""inp_color_" & stepsCount & """, ""chip_" & stepsCount & """)'>"
+        row.insertCell(4).innerHTML = "<input type='text' class='input-inline status-param' id='inp_param_" & stepsCount & "' value='" & paramVal & "'>"
+        row.insertCell(5).innerHTML = "<input type='text' class='input-inline status-delay' id='inp_delay_" & stepsCount & "' value='" & delayMs & "'>"
+        row.insertCell(6).innerHTML = "<button class='btn-danger' style='padding:4px 8px; font-size:11px;' onclick='vbscript:DeleteRow(" & stepsCount & ")'>❌</button>"
+        
+        Call InitDragAndDropListeners(row)
+        document.body.focus()
+    End Sub
+
+    Sub AddExtraActionRow(actionType, mouseX, mouseY, colorVal, paramVal, delayMs)
+        extraStepsCount = extraStepsCount + 1
+        Dim tableBody, row, bgChip
+        Set tableBody = document.getElementById("extraTableBody")
+        Set row = tableBody.insertRow(-1)
+        row.id = "ext_row_" & extraStepsCount
+        
+        bgChip = "transparent"
+        If Left(colorVal, 1) = "#" And Len(colorVal) = 7 Then bgChip = colorVal
+
+        row.insertCell(0).innerHTML = "<input type='text' class='input-inline status-name' id='ext_inp_name_" & extraStepsCount & "' value='Extra Step " & extraStepsCount & "'>"
+        row.insertCell(1).innerHTML = "<select class='select-inline status-act' id='ext_inp_act_" & extraStepsCount & "'>" & _
+            "<option value='CLICK'" & IIf(actionType="CLICK"," selected","") & ">CLICK</option>" & _
+            "<option value='DOUBLE CLICK'" & IIf(actionType="DOUBLE CLICK"," selected","") & ">DOUBLE CLICK</option>" & _
+            "<option value='RIGHT CLICK'" & IIf(actionType="RIGHT CLICK"," selected","") & ">RIGHT CLICK</option>" & _
+            "<option value='MOVE CURSOR ONLY'" & IIf(actionType="MOVE CURSOR ONLY"," selected","") & ">MOVE CURSOR ONLY</option>" & _
+            "<option value='SCROLL UP'" & IIf(actionType="SCROLL UP"," selected","") & ">SCROLL UP</option>" & _
+            "<option value='SCROLL DOWN'" & IIf(actionType="SCROLL DOWN"," selected","") & ">SCROLL DOWN</option>" & _
+            "<option value='WRITE'" & IIf(actionType="WRITE"," selected","") & ">WRITE</option>" & _
+            "<option value='SHORTCUT'" & IIf(actionType="SHORTCUT"," selected","") & ">SHORTCUT</option>" & _
+            "<option value='SWITCH_APP'" & IIf(actionType="SWITCH_APP"," selected","") & ">SWITCH_APP</option>" & _
+            "</select>"
+        row.insertCell(2).innerHTML = "<input type='text' class='input-inline status-coord' id='ext_inp_coord_" & extraStepsCount & "' value='" & mouseX & ", " & mouseY & "'>"
+        row.insertCell(3).innerHTML = "<span class='color-preview-chip' id='ext_chip_" & extraStepsCount & "' style='background-color:" & bgChip & ";'></span>" & _
+            "<input type='text' class='input-inline status-color' id='ext_inp_color_" & extraStepsCount & "' style='width:75%;' value='" & colorVal & "' onkeyup='UpdateColorChip(""ext_inp_color_" & extraStepsCount & """, ""ext_chip_" & extraStepsCount & """)'>"
+        row.insertCell(4).innerHTML = "<input type='text' class='input-inline status-param' id='ext_inp_param_" & extraStepsCount & "' value='" & paramVal & "'>"
+        row.insertCell(5).innerHTML = "<input type='text' class='input-inline status-delay' id='ext_inp_delay_" & extraStepsCount & "' value='" & delayMs & "'>"
+        row.insertCell(6).innerHTML = "<button class='btn-danger' style='padding:4px 8px; font-size:11px;' onclick='vbscript:DeleteExtraRow(" & extraStepsCount & ")'>❌</button>"
+        
+        Call InitDragAndDropListeners(row)
+    End Sub
+
+    Function IIf(rel, trueVal, falseVal)
+        If rel Then IIf = trueVal Else IIf = falseVal
+    End Function
+
+    Sub DeleteRow(id)
+        Dim row
+        Set row = document.getElementById("row_" & id)
+        row.parentNode.removeChild(row)
+    End Sub
+
+    Sub DeleteExtraRow(id)
+        Dim row
+        Set row = document.getElementById("ext_row_" & id)
+        row.parentNode.removeChild(row)
+    End Sub
+
+    Sub SaveSequenceMetadata()
+        Dim PathMeta, FileMeta, tbody, rows, rowIdx
+        Set tbody = document.getElementById("tableBody")
+        Set rows = tbody.rows
+        If rows.length = 0 Then MsgBox "Tabel kosong.", 48, "Peringatan" : Exit Sub
+        
+        PathMeta = wshShell.CurrentDirectory & "\sequence_config.txt"
+        Set FileMeta = FSO.CreateTextFile(PathMeta, True)
+        For rowIdx = 0 To rows.length - 1
+            Dim curRow
+            Set curRow = rows(rowIdx)
+            FileMeta.WriteLine curRow.getElementsByClassName("status-name")(0).value & "||" & _
+                               curRow.getElementsByClassName("status-act")(0).value & "||" & _
+                               curRow.getElementsByClassName("status-coord")(0).value & "||" & _
+                               curRow.getElementsByClassName("status-color")(0).value & "||" & _
+                               curRow.getElementsByClassName("status-param")(0).value & "||" & _
+                               curRow.getElementsByClassName("status-delay")(0).value
+        Next
+        FileMeta.Close
+        MsgBox "Metadata berhasil disimpan!", 64, "Save Metadata Sukses"
+    End Sub
+
+    Sub LoadSequenceMetadata()
+        Dim PathMeta, objFile, lineStr, parts, hasValidData
+        PathMeta = wshShell.CurrentDirectory & "\sequence_config.txt"
+        If Not FSO.FileExists(PathMeta) Then MsgBox "File 'sequence_config.txt' tidak ada.", 48, "Error" : Exit Sub
+        
+        hasValidData = False
+        Set objFile = FSO.OpenTextFile(PathMeta, 1)
+        Do Until objFile.AtEndOfStream
+            lineStr = Trim(objFile.ReadLine)
+            If lineStr <> "" Then
+                hasValidData = True
+                Exit Do
+            End If
+        Loop
+        objFile.Close
+
+        ' KETENTUAN 1: COPY/LOAD TABEL KOSONG MAKA FLOW LANGSUNG TERMINATED
+        If Not hasValidData Then
+            document.getElementById("tableBody").innerHTML = ""
+            stepsCount = 0
+            MsgBox "Sequence metadata kosong (blank)! Flow otomatis di-terminate.", 16, "Flow Terminated"
+            Exit Sub
+        End If
+
+        document.getElementById("tableBody").innerHTML = ""
+        stepsCount = 0
+        Set objFile = FSO.OpenTextFile(PathMeta, 1)
+        Do Until objFile.AtEndOfStream
+            lineStr = Trim(objFile.ReadLine)
+            If lineStr <> "" Then
+                parts = Split(lineStr, "||")
+                If UBound(parts) = 5 Then
+                    Dim pX, pY
+                    pX = "-" : pY = "-"
+                    If InStr(parts(2), ",") > 0 Then pX = Trim(Split(parts(2), ",")(0)) : pY = Trim(Split(parts(2), ",")(1))
+                    Call AddMainActionRow(parts(1), pX, pY, parts(3), parts(4), parts(5))
+                    document.getElementById("inp_name_" & stepsCount).value = parts(0)
+                End If
+            End If
+        Loop
+        objFile.Close
+        MsgBox "Metadata berhasil di-load!", 64, "Sukses"
+    End Sub
+
+Sub GenerateVBSOnly()
+        Dim PathFile, FileVBS, loopInput, totalStepsActive, tbody, rows, rowIdx
+        Dim extTbody, extRows, extRowIdx
+        Set tbody = document.getElementById("tableBody")
+        Set rows = tbody.rows
+        totalStepsActive = rows.length
+
+        ' KETENTUAN 1: BILA SEQUENCE KOSONG (BLANK), FLOW LANGSUNG TERMINATED
+        If totalStepsActive = 0 Then 
+            MsgBox "Sequence tabel kosong (blank)! Flow otomatis di-terminate.", 16, "Flow Terminated"
+            Exit Sub 
+        End If
+
+        loopInput = InputBox("Loop Configuration:" & vbCrLf & "Ketik '1' = Sekali jalan" & vbCrLf & "Ketik 'inf' = Infinity loop", "Perulangan Eksekusi", "1")
+        If loopInput = "" Then Exit Sub
+        loopOpt = loopInput
+        
+        PathFile = wshShell.CurrentDirectory & "\w.vbs"
+        Set FileVBS = FSO.CreateTextFile(PathFile, True)
+        
+        FileVBS.WriteLine "' GENERATED ENGINE v1.7-pro Mouse Interrupt & Countdown Edition"
+        FileVBS.WriteLine "Dim shl, ax, fso, currentLoop, maxLoop, runForever, ts, lastPhysX, lastPhysY"
+        FileVBS.WriteLine "Set shl = CreateObject(""WScript.Shell"")"
+        FileVBS.WriteLine "Set ax = CreateObject(""Excel.Application"")"
+        FileVBS.WriteLine "Set fso = CreateObject(""Scripting.FileSystemObject"")"
+        FileVBS.WriteLine "WScript.Sleep 1500"
+        
+        If LCase(loopInput) = "inf" Then
+            FileVBS.WriteLine "maxLoop = 999999: runForever = True"
+        Else
+            FileVBS.WriteLine "maxLoop = " & CInt(loopInput) & ": runForever = False"
+        End If
+        
+        ' Update posisi kursor acuan
+        FileVBS.WriteLine "Sub UpdateLastCursorPos()"
+        FileVBS.WriteLine "   On Error Resume Next"
+        FileVBS.WriteLine "   Dim posHex, fullPos"
+        FileVBS.WriteLine "   fullPos = ax.ExecuteExcel4Macro(""CALL(""""user32"""",""""GetMessagePos"""",""""J"""")"")"
+        FileVBS.WriteLine "   posHex = Hex(fullPos)"
+        FileVBS.WriteLine "   Do While Len(posHex) < 8 : posHex = ""0"" & posHex : Loop"
+        FileVBS.WriteLine "   lastPhysX = CLng(""&H"" & Right(posHex, 4))"
+        FileVBS.WriteLine "   lastPhysY = CLng(""&H"" & Left(posHex, 4))"
+        FileVBS.WriteLine "   If lastPhysX > 32767 Then lastPhysX = lastPhysX - 65536"
+        FileVBS.WriteLine "   If lastPhysY > 32767 Then lastPhysY = lastPhysY - 65536"
+        FileVBS.WriteLine "End Sub"
+
+        ' Deteksi gerakan fisik mouse saja
+        FileVBS.WriteLine "Function IsMouseMoved()"
+        FileVBS.WriteLine "   On Error Resume Next"
+        FileVBS.WriteLine "   IsMouseMoved = False"
+        FileVBS.WriteLine "   Dim posHex, fullPos, curX, curY"
+        FileVBS.WriteLine "   fullPos = ax.ExecuteExcel4Macro(""CALL(""""user32"""",""""GetMessagePos"""",""""J"""")"")"
+        FileVBS.WriteLine "   posHex = Hex(fullPos)"
+        FileVBS.WriteLine "   Do While Len(posHex) < 8 : posHex = ""0"" & posHex : Loop"
+        FileVBS.WriteLine "   curX = CLng(""&H"" & Right(posHex, 4))"
+        FileVBS.WriteLine "   curY = CLng(""&H"" & Left(posHex, 4))"
+        FileVBS.WriteLine "   If curX > 32767 Then curX = curX - 65536"
+        FileVBS.WriteLine "   If curY > 32767 Then curY = curY - 65536"
+        FileVBS.WriteLine "   If Abs(curX - lastPhysX) > 8 Or Abs(curY - lastPhysY) > 8 Then"
+        FileVBS.WriteLine "       IsMouseMoved = True"
+        FileVBS.WriteLine "   End If"
+        FileVBS.WriteLine "End Function"
+
+        ' Log khusus saat posisi HALTED / Countdown
+        FileVBS.WriteLine "Sub LogHaltedStatus(remTimeSec)"
+        FileVBS.WriteLine "   On Error Resume Next"
+        FileVBS.WriteLine "   Set ts = fso.CreateTextFile(""" & Replace(PathStatusTmp, "\", "\\") & """, True)"
+        FileVBS.WriteLine "   ts.WriteLine ""PHYSICAL_HOLD;"" & remTimeSec"
+        FileVBS.WriteLine "   ts.Close"
+        FileVBS.WriteLine "End Sub"
+
+        ' Check hold dengan countdown 3 detik
+        FileVBS.WriteLine "Sub CheckPhysicalHold()"
+        FileVBS.WriteLine "   On Error Resume Next"
+        FileVBS.WriteLine "   If IsMouseMoved() Then"
+        FileVBS.WriteLine "       Dim idleMs, remSec"
+        FileVBS.WriteLine "       idleMs = 0"
+        FileVBS.WriteLine "       Do"
+        FileVBS.WriteLine "           WScript.Sleep 100"
+        FileVBS.WriteLine "           Call UpdateLastCursorPos()"
+        FileVBS.WriteLine "           If IsMouseMoved() Then"
+        FileVBS.WriteLine "               idleMs = 0"
+        FileVBS.WriteLine "           Else"
+        FileVBS.WriteLine "               idleMs = idleMs + 100"
+        FileVBS.WriteLine "           End If"
+        FileVBS.WriteLine "           remSec = FormatNumber((3000 - idleMs) / 1000, 1)"
+        FileVBS.WriteLine "           If remSec < 0 Then remSec = 0"
+        FileVBS.WriteLine "           Call LogHaltedStatus(remSec)"
+        FileVBS.WriteLine "       Loop While idleMs < 3000"
+        FileVBS.WriteLine "   End If"
+        FileVBS.WriteLine "End Sub"
+
+        FileVBS.WriteLine "Sub LogStatus(stepIdx, totalSteps, stepName)"
+        FileVBS.WriteLine "   On Error Resume Next"
+        FileVBS.WriteLine "   Set ts = fso.CreateTextFile(""" & Replace(PathStatusTmp, "\", "\\") & """, True)"
+        FileVBS.WriteLine "   If runForever Then"
+        FileVBS.WriteLine "       ts.WriteLine currentLoop & ""/INF;"" & stepIdx & ""/"" & totalSteps & "";"" & stepName"
+        FileVBS.WriteLine "   Else"
+        FileVBS.WriteLine "       ts.WriteLine currentLoop & ""/"" & maxLoop & "";"" & stepIdx & ""/"" & totalSteps & "";"" & stepName"
+        FileVBS.WriteLine "   End If"
+        FileVBS.WriteLine "   ts.Close"
+        FileVBS.WriteLine "End Sub"
+        
+        FileVBS.WriteLine "Function WaitDynamicHoldColor(targetX, targetY, targetHexColor)"
+        FileVBS.WriteLine "   On Error Resume Next"
+        FileVBS.WriteLine "   If targetHexColor = """" Or UCase(targetHexColor) = ""STATIC WAIT"" Then Exit Function"
+        FileVBS.WriteLine "   Dim hDC, rgbVal, curR, curG, curB, curHex"
+        FileVBS.WriteLine "   Do"
+        FileVBS.WriteLine "       Call CheckPhysicalHold()"
+        FileVBS.WriteLine "       hDC = ax.ExecuteExcel4Macro(""CALL(""""user32"""",""""GetDC"""",""""JJ"""",0)"")"
+        FileVBS.WriteLine "       rgbVal = ax.ExecuteExcel4Macro(""CALL(""""gdi32"""",""""GetPixel"""",""""JJJJ"""","" & hDC & "","" & targetX & "","" & targetY & "")"")"
+        FileVBS.WriteLine "       ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""ReleaseDC"""",""""JJJ"""",0,"" & hDC & "")"""
+        FileVBS.WriteLine "       If rgbVal >= 0 Then"
+        FileVBS.WriteLine "           curR = rgbVal Mod 256"
+        FileVBS.WriteLine "           curG = (rgbVal \ 256) Mod 256"
+        FileVBS.WriteLine "           curB = (rgbVal \ 65536) Mod 256"
+        FileVBS.WriteLine "           curHex = ""#"" & Right(""0"" & Hex(curR), 2) & Right(""0"" & Hex(curG), 2) & Right(""0"" & Hex(curB), 2)"
+        FileVBS.WriteLine "           If UCase(curHex) = UCase(targetHexColor) Then Exit Do"
+        FileVBS.WriteLine "       End If"
+        FileVBS.WriteLine "       WScript.Sleep 50"
+        FileVBS.WriteLine "   Loop"
+        FileVBS.WriteLine "End Function"
+
+        FileVBS.WriteLine "Sub AutoSwitchActiveWindow(targetTitle)"
+        FileVBS.WriteLine "   Dim cleanTitle, wmi, processes, exeName, isRunning, i"
+        FileVBS.WriteLine "   On Error Resume Next"
+        FileVBS.WriteLine "   cleanTitle = targetTitle"
+        FileVBS.WriteLine "   If InStr(cleanTitle, "".exe"") > 0 Then"
+        FileVBS.WriteLine "       exeName = cleanTitle: cleanTitle = Split(cleanTitle, "".exe"")(0)"
+        FileVBS.WriteLine "   Else"
+        FileVBS.WriteLine "       If LCase(cleanTitle) = ""notepad"" Then exeName = ""notepad.exe"""
+        FileVBS.WriteLine "       If LCase(cleanTitle) = ""word"" Then exeName = ""winword.exe"""
+        FileVBS.WriteLine "       If LCase(cleanTitle) = ""excel"" Then exeName = ""excel.exe"""
+        FileVBS.WriteLine "       If exeName = """" Then exeName = cleanTitle & "".exe"""
+        FileVBS.WriteLine "   End If"
+        FileVBS.WriteLine "   Do"
+        FileVBS.WriteLine "       isRunning = False"
+        FileVBS.WriteLine "       Set wmi = GetObject(""winmgmts:{impersonationLevel=impersonate}!\\.\root\cimv2"")"
+        FileVBS.WriteLine "       Set processes = wmi.ExecQuery(""SELECT * FROM Win32_Process WHERE Name='"" & exeName & ""'"")"
+        FileVBS.WriteLine "       If processes.Count > 0 Then isRunning = True"
+        FileVBS.WriteLine "       If isRunning Then"
+        FileVBS.WriteLine "           For i = 1 To 2: shl.AppActivate(targetTitle): shl.AppActivate(cleanTitle): WScript.Sleep 150: Next"
+        FileVBS.WriteLine "           Exit Do"
+        FileVBS.WriteLine "       Else"
+        FileVBS.WriteLine "           If MsgBox(""Target '"" & exeName & ""' belum aktif. Buka lalu klik OK."", 49, ""Error Focus"") = 2 Then WScript.Quit"
+        FileVBS.WriteLine "       End If"
+        FileVBS.WriteLine "   Loop"
+        FileVBS.WriteLine "End Sub"        
+
+        ' MAIN LOOP SCRIPT
+        FileVBS.WriteLine "currentLoop = 0"
+        FileVBS.WriteLine "Do While (currentLoop < maxLoop) Or runForever"
+        FileVBS.WriteLine "    currentLoop = currentLoop + 1"
+        
+        For rowIdx = 0 To rows.length - 1
+            Dim curRow, vName, vAct, vCoord, vColor, vParam, vDelay
+            Set curRow = rows(rowIdx)
+            vName = curRow.getElementsByClassName("status-name")(0).value
+            vAct = curRow.getElementsByClassName("status-act")(0).value
+            vCoord = curRow.getElementsByClassName("status-coord")(0).value
+            vColor = curRow.getElementsByClassName("status-color")(0).value
+            vParam = curRow.getElementsByClassName("status-param")(0).value
+            vDelay = curRow.getElementsByClassName("status-delay")(0).value
+            
+            FileVBS.WriteLine "    Call CheckPhysicalHold()"
+            FileVBS.WriteLine "    Call LogStatus(" & (rowIdx + 1) & ", " & totalStepsActive & ", ""Step #" & (rowIdx + 1) & ": " & vName & " [" & vAct & "]"")"
+            If vAct = "SWITCH_APP" Then
+                FileVBS.WriteLine "    Call AutoSwitchActiveWindow(""" & vParam & """)"
+            ElseIf vAct = "CLICK" Or vAct = "DOUBLE CLICK" Or vAct = "RIGHT CLICK" Or vAct = "MOVE CURSOR ONLY" Then
+                If InStr(vCoord, ",") > 0 Then
+                    Dim cParts, x, y
+                    cParts = Split(vCoord, ","): x = Trim(cParts(0)): y = Trim(cParts(1))
+                    If IsNumeric(x) And IsNumeric(y) Then
+                        FileVBS.WriteLine "    Call WaitDynamicHoldColor(" & x & ", " & y & ", """ & vColor & """)"
+                        FileVBS.WriteLine "    ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""SetCursorPos"""",""""JJJ""""," & x & "," & y & ")"""
+                        If vAct = "CLICK" Then
+                            FileVBS.WriteLine "    ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""mouse_event"""",""""JJJJJJ"""",2,0,0,0,0)"""
+                            FileVBS.WriteLine "    ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""mouse_event"""",""""JJJJJJ"""",4,0,0,0,0)"""
+                        ElseIf vAct = "DOUBLE CLICK" Then
+                            FileVBS.WriteLine "    ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""mouse_event"""",""""JJJJJJ"""",2,0,0,0,0)"""
+                            FileVBS.WriteLine "    ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""mouse_event"""",""""JJJJJJ"""",4,0,0,0,0)"""
+                            FileVBS.WriteLine "    WScript.Sleep 100"
+                            FileVBS.WriteLine "    ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""mouse_event"""",""""JJJJJJ"""",2,0,0,0,0)"""
+                            FileVBS.WriteLine "    ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""mouse_event"""",""""JJJJJJ"""",4,0,0,0,0)"""
+                        ElseIf vAct = "RIGHT CLICK" Then
+                            FileVBS.WriteLine "    ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""mouse_event"""",""""JJJJJJ"""",8,0,0,0,0)"""
+                            FileVBS.WriteLine "    ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""mouse_event"""",""""JJJJJJ"""",16,0,0,0,0)"""
+                        End If
+                        FileVBS.WriteLine "    Call UpdateLastCursorPos()"
+                    End If
+                End If
+            ElseIf vAct = "SCROLL UP" Then
+                Dim scrollNotchesUp
+                scrollNotchesUp = 1
+                If IsNumeric(vParam) And CInt(vParam) > 0 Then scrollNotchesUp = CInt(vParam)
+                FileVBS.WriteLine "    ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""mouse_event"""",""""JJJJJJ"""",2048,0,0," & (scrollNotchesUp * 120) & ",0)"""
+            ElseIf vAct = "SCROLL DOWN" Then
+                Dim scrollNotchesDown
+                scrollNotchesDown = 1
+                If IsNumeric(vParam) And CInt(vParam) > 0 Then scrollNotchesDown = CInt(vParam)
+                FileVBS.WriteLine "    ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""mouse_event"""",""""JJJJJJ"""",2048,0,0," & (scrollNotchesDown * -120) & ",0)"""
+            ElseIf vAct = "WRITE" Or vAct = "SHORTCUT" Then
+                FileVBS.WriteLine "    shl.SendKeys """ & vParam & """"
+            End If
+            FileVBS.WriteLine "    WScript.Sleep " & vDelay
+        Next
+        
+        FileVBS.WriteLine "    If Not runForever And currentLoop >= maxLoop Then Exit Do"
+        FileVBS.WriteLine "    WScript.Sleep 300"
+        FileVBS.WriteLine "Loop"
+        
+        ' EXTRA SEQUENCE POST-LOOPS
+        Set extTbody = document.getElementById("extraTableBody")
+        Set extRows = extTbody.rows
+        If document.getElementById("chkExtraSeq").checked And extRows.length > 0 Then
+            FileVBS.WriteLine " ' --- POST LOOPS EXTRA SEQUENCE ---"
+            For extRowIdx = 0 To extRows.length - 1
+                Set curRow = extRows(extRowIdx)
+                vName = curRow.getElementsByClassName("status-name")(0).value
+                vAct = curRow.getElementsByClassName("status-act")(0).value
+                vCoord = curRow.getElementsByClassName("status-coord")(0).value
+                vColor = curRow.getElementsByClassName("status-color")(0).value
+                vParam = curRow.getElementsByClassName("status-param")(0).value
+                vDelay = curRow.getElementsByClassName("status-delay")(0).value
+                
+                FileVBS.WriteLine "Call CheckPhysicalHold()"
+                FileVBS.WriteLine "Call LogStatus(" & (extRowIdx + 1) & ", " & extRows.length & ", ""EXTRA #" & (extRowIdx + 1) & ": " & vName & """)"
+                If vAct = "SWITCH_APP" Then
+                    FileVBS.WriteLine "AutoSwitchActiveWindow """ & vParam & """"
+                ElseIf vAct = "CLICK" Or vAct = "DOUBLE CLICK" Or vAct = "RIGHT CLICK" Or vAct = "MOVE CURSOR ONLY" Then
+                    If InStr(vCoord, ",") > 0 Then
+                        cParts = Split(vCoord, ","): x = Trim(cParts(0)): y = Trim(cParts(1))
+                        If IsNumeric(x) And IsNumeric(y) Then
+                            FileVBS.WriteLine "WaitDynamicHoldColor " & x & ", " & y & ", """ & vColor & """"
+                            FileVBS.WriteLine "ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""SetCursorPos"""",""""JJJ""""," & x & "," & y & ")"""
+                            If vAct = "CLICK" Then
+                                FileVBS.WriteLine "ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""mouse_event"""",""""JJJJJJ"""",2,0,0,0,0)"""
+                                FileVBS.WriteLine "ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""mouse_event"""",""""JJJJJJ"""",4,0,0,0,0)"""
+                            ElseIf vAct = "DOUBLE CLICK" Then
+                                FileVBS.WriteLine "ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""mouse_event"""",""""JJJJJJ"""",2,0,0,0,0)"""
+                                FileVBS.WriteLine "ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""mouse_event"""",""""JJJJJJ"""",4,0,0,0,0)"""
+                                FileVBS.WriteLine "WScript.Sleep 100"
+                                FileVBS.WriteLine "ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""mouse_event"""",""""JJJJJJ"""",2,0,0,0,0)"""
+                                FileVBS.WriteLine "ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""mouse_event"""",""""JJJJJJ"""",4,0,0,0,0)"""
+                            ElseIf vAct = "RIGHT CLICK" Then
+                                FileVBS.WriteLine "ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""mouse_event"""",""""JJJJJJ"""",8,0,0,0,0)"""
+                                FileVBS.WriteLine "ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""mouse_event"""",""""JJJJJJ"""",16,0,0,0,0)"""
+                            End If
+                            FileVBS.WriteLine "UpdateLastCursorPos"
+                        End If
+                    End If
+                ElseIf vAct = "SCROLL UP" Then
+                    Dim scrollNotchesUpExt
+                    scrollNotchesUpExt = 1
+                    If IsNumeric(vParam) And CInt(vParam) > 0 Then scrollNotchesUpExt = CInt(vParam)
+                    FileVBS.WriteLine "ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""mouse_event"""",""""JJJJJJ"""",2048,0,0," & (scrollNotchesUpExt * 120) & ",0)"""
+                ElseIf vAct = "SCROLL DOWN" Then
+                    Dim scrollNotchesDownExt
+                    scrollNotchesDownExt = 1
+                    If IsNumeric(vParam) And CInt(vParam) > 0 Then scrollNotchesDownExt = CInt(vParam)
+                    FileVBS.WriteLine "ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""mouse_event"""",""""JJJJJJ"""",2048,0,0," & (scrollNotchesDownExt * -120) & ",0)"""
+                ElseIf vAct = "WRITE" Or vAct = "SHORTCUT" Then
+                    FileVBS.WriteLine "shl.SendKeys """ & vParam & """"
+                End If
+                FileVBS.WriteLine "WScript.Sleep " & vDelay
+            Next
+        End If
+
+        FileVBS.WriteLine "ax.Quit: Set ax = Nothing"
+        FileVBS.WriteLine "On Error Resume Next"
+        FileVBS.WriteLine "fso.DeleteFile(""" & Replace(PathStatusTmp, "\", "\\") & """)"
+        FileVBS.WriteLine "MsgBox ""Kelar Deh Kerjaan Lu."", 64, ""Kelar Cuy"""
+        FileVBS.Close
+        
+        MsgBox "File w.vbs berhasil di-generate!", 64, "Sukses"
+    End Sub
+
+    Sub ToggleEngineState()
+        If isLaunchingState Or isTerminatingState Then Exit Sub
+        If Not engineActive Then
+            Call LaunchVBScript()
+        Else
+            Call ControlStop()
+        End If
+    End Sub
+
+    Sub LaunchVBScript()
+        Dim TargetPath
+        TargetPath = wshShell.CurrentDirectory & "\w.vbs"
+        If Not FSO.FileExists(TargetPath) Then MsgBox "File 'w.vbs' belum di-generate.", 48, "Error" : Exit Sub
+        
+        If FSO.FileExists(PathStatusTmp) Then FSO.DeleteFile(PathStatusTmp)
+        If FSO.FileExists(PathPauseTmp) Then FSO.DeleteFile(PathPauseTmp)
+        
+        isLaunchingState = True
+        engineActive = True
+        startTime = Timer
+        prepMsgIdx = 0
+        lastEstUpdateSec = -10
+
+        Dim masterBtn
+        Set masterBtn = document.getElementById("btnMasterEngine")
+        masterBtn.innerText = "⏳ RUNNING ENGINE..."
+        masterBtn.disabled = True
+
+        document.getElementById("boxAtomLoader").style.display = "block"
+
+        If LCase(loopOpt) = "inf" Then
+            document.getElementById("barTotalProg").className = "progress-bar-fill infinite-mode"
+            document.getElementById("txtTotalProg").innerText = "∞ INFINITE LOOP"
+        Else
+            document.getElementById("barTotalProg").className = "progress-bar-fill total"
+            document.getElementById("txtTotalProg").innerText = "0%"
+        End If
+
+        Call AnimateStatusText("INITIALIZING", "#38bdf8")
+        
+        wshShell.Run """" & TargetPath & """", 1, False
+    End Sub
+
+    Function FormatSeconds(secVal)
+        Dim h, m, s
+        If secVal < 0 Then secVal = 0
+        h = Fix(secVal / 3600)
+        m = Fix((secVal Mod 3600) / 60)
+        s = Fix(secVal Mod 60)
+        FormatSeconds = Right("0" & h, 2) & ":" & Right("0" & m, 2) & ":" & Right("0" & s, 2)
+    End Function
+
+    Sub RotateRandomTips()
+        If engineActive Then
+            tipTimerCounter = tipTimerCounter + 1
+            If tipTimerCounter >= 20 Then
+                tipTimerCounter = 0
+                Dim rIdx
+                rIdx = Int((UBound(arrFunTips) + 1) * Rnd)
+                document.getElementById("txtFunTip").innerText = arrFunTips(rIdx)
+            End If
+        End If
+    End Sub
+
+Sub ReadStatusLog()
+        On Error Resume Next
+        
+        Call RotateRandomTips()
+
+        If engineActive Then
+            Dim elapsed
+            elapsed = Timer - startTime
+            If elapsed < 0 Then elapsed = 0
+            document.getElementById("txtElapsedTime").innerText = FormatSeconds(elapsed)
+        End If
+
+        If Not FSO.FileExists(PathStatusTmp) Then
+            If isLaunchingState Then
+                prepMsgIdx = (prepMsgIdx + 1) Mod 5
+                Select Case prepMsgIdx
+                    Case 0: document.getElementById("monStep").innerText = "⚡ Allocating Excel COM Threads..."
+                    Case 1: document.getElementById("monStep").innerText = "🔍 Warming Up User32 API Hooks..."
+                    Case 2: document.getElementById("monStep").innerText = "⚙️ Synchronizing Process Timers..."
+                    Case 3: document.getElementById("monStep").innerText = "🛡️ Validating Target Handles..."
+                    Case 4: document.getElementById("monStep").innerText = "🚀 Readying Execution Pipeline..."
+                End Select
+                Exit Sub
+            End If
+            
+            If engineActive Then engineActive = False
+            
+            If Not isTerminatingState Then
+                Dim masterBtn
+                Set masterBtn = document.getElementById("btnMasterEngine")
+                masterBtn.innerText = "▶ RUN ENGINE"
+                masterBtn.className = "btn-success"
+                masterBtn.disabled = False
+            End If
+            
+            Call AnimateStatusText("IDLE", "#64748b")
+            document.getElementById("monLoop").innerText = "0 / 0"
+            document.getElementById("monStep").innerText = "-"
+            document.getElementById("boxAtomLoader").style.display = "none"
+            document.getElementById("txtFunTip").innerText = "💡 System ready. Silakan tekan RUN ENGINE untuk memulai eksekusi otomasi."
+            
+            document.getElementById("barLoopProg").style.width = "0%"
+            document.getElementById("txtLoopProg").innerText = "0%"
+            
+            document.getElementById("barTotalProg").className = "progress-bar-fill total"
+            document.getElementById("barTotalProg").style.width = "0%"
+            document.getElementById("txtTotalProg").innerText = "0%"
+            document.getElementById("txtEstTime").innerText = "00:00:00"
+            Exit Sub
+        End If
+
+        If FSO.FileExists(PathStatusTmp) Then
+            Dim objFile, fileContent, parts
+            Set objFile = FSO.OpenTextFile(PathStatusTmp, 1, False)
+            If Err.Number = 0 Then
+                fileContent = objFile.ReadLine
+                objFile.Close
+                
+                If fileContent <> "" Then
+                    ' METODE 1: PENANGANAN STATUS HALTED (INPUT MOUSE DETECTED)
+                    If InStr(fileContent, "PHYSICAL_HOLD;") = 1 Then
+                        parts = Split(fileContent, ";")
+                        Call AnimateStatusText("HALTED", "#f59e0b") ' Warna Orange / Amber
+                        
+                        Dim countdownVal
+                        countdownVal = parts(1)
+                        document.getElementById("monStep").innerHTML = "<span style='color:#f59e0b; font-weight:800;'>⏸️ User Interruption! Resuming in " & countdownVal & "s...</span>"
+                        Exit Sub
+                    End If
+
+                    ' METODE 2: PENANGANAN STATUS NORMAL RUNNING
+                    If InStr(fileContent, ";") > 0 Then
+                        parts = Split(fileContent, ";")
+                        
+                        If isLaunchingState Then
+                            isLaunchingState = False
+                            Dim masterBtnRun
+                            Set masterBtnRun = document.getElementById("btnMasterEngine")
+                            masterBtnRun.innerText = "⏹️ TERMINATE ENGINE"
+                            masterBtnRun.className = "btn-danger"
+                            masterBtnRun.disabled = False
+                        End If
+                        
+                        Call AnimateStatusText("RUNNING", "#10b981")
+                        
+                        document.getElementById("monLoop").innerText = parts(0)
+                        document.getElementById("monStep").innerText = parts(2)
+                        
+                        If UBound(parts) >= 1 Then
+                            Dim stepParts, curStep, totStep
+                            If InStr(parts(1), "/") > 0 Then
+                                stepParts = Split(parts(1), "/")
+                                curStep = CDbl(stepParts(0))
+                                totStep = CDbl(stepParts(1))
+                                
+                                Dim loopPct
+                                loopPct = Fix((curStep / totStep) * 100)
+                                document.getElementById("barLoopProg").style.width = loopPct & "%"
+                                document.getElementById("txtLoopProg").innerText = loopPct & "%"
+                                
+                                Dim loopInfoParts, curLoop, totLoop
+                                If InStr(parts(0), "/") > 0 Then
+                                    loopInfoParts = Split(parts(0), "/")
+                                    curLoop = CDbl(loopInfoParts(0))
+                                    
+                                    If IsNumeric(loopInfoParts(1)) Then
+                                        totLoop = CDbl(loopInfoParts(1))
+                                        Dim totalPct
+                                        totalPct = Fix((((curLoop - 1) * totStep + curStep) / (totStep * totLoop)) * 100)
+                                        document.getElementById("barTotalProg").className = "progress-bar-fill total"
+                                        document.getElementById("barTotalProg").style.width = totalPct & "%"
+                                        document.getElementById("txtTotalProg").innerText = totalPct & "%"
+                                        
+                                        Dim currentElapsedSec
+                                        currentElapsedSec = Timer - startTime
+                                        If currentElapsedSec - lastEstUpdateSec >= 10 Then
+                                            lastEstUpdateSec = currentElapsedSec
+                                            Dim totalCompletedSteps, totalAllSteps, avgTimePerStep, remainingSteps, estSec
+                                            totalCompletedSteps = ((curLoop - 1) * totStep) + curStep
+                                            totalAllSteps = totStep * totLoop
+                                            remainingSteps = totalAllSteps - totalCompletedSteps
+                                            
+                                            If totalCompletedSteps > 0 And currentElapsedSec > 0 Then
+                                                avgTimePerStep = currentElapsedSec / totalCompletedSteps
+                                                estSec = remainingSteps * avgTimePerStep
+                                                document.getElementById("txtEstTime").innerText = FormatSeconds(estSec)
+                                            End If
+                                        End If
+                                    Else
+                                        document.getElementById("barTotalProg").className = "progress-bar-fill infinite-mode"
+                                        document.getElementById("txtTotalProg").innerText = "∞ INFINITE LOOP"
+                                        document.getElementById("txtEstTime").innerText = "∞ INFINITE"
+                                    End If
+                                End If
+                            End If
+                        End If
+                    End If
+                End If
+            End If
+            Err.Clear
+        End If
+    End Sub
+
+Sub ControlStop()
+        On Error Resume Next
+        isTerminatingState = True
+        
+        Dim masterBtn
+        Set masterBtn = document.getElementById("btnMasterEngine")
+        masterBtn.innerText = "⌛ TERMINATING..."
+        masterBtn.disabled = True
+        
+        Call AnimateStatusText("TERMINATING", "#dc2626")
+        
+        ' ==========================================
+        ' SAFE EXIT: NATIVE WMI PROCESS TERMINATION
+        ' ==========================================
+        Dim wmi, procList, proc
+        Set wmi = GetObject("winmgmts:{impersonationLevel=impersonate}!\\.\root\cimv2")
+        
+        ' 1. Target and kill ONLY the specific w.vbs execution engine
+        Set procList = wmi.ExecQuery("SELECT * FROM Win32_Process WHERE Name='wscript.exe'")
+        For Each proc In procList
+            If InStr(LCase(proc.CommandLine), "w.vbs") > 0 Then
+                proc.Terminate()
+            End If
+        Next
+        
+        ' 2. Clean up Excel processes spawned by the script (prevents memory leaks)
+        ' Note: This mirrors your original logic but executes silently via WMI
+        Set procList = wmi.ExecQuery("SELECT * FROM Win32_Process WHERE Name='excel.exe'")
+        For Each proc In procList
+            ' Only kill hidden Excel instances (running without command line arguments)
+            If proc.CommandLine = """C:\Program Files\Microsoft Office\root\Office16\EXCEL.EXE""" Or InStr(LCase(proc.CommandLine), "automation") > 0 Then
+                 proc.Terminate()
+            End If
+        Next
+        ' ==========================================
+        
+        If FSO.FileExists(PathStatusTmp) Then FSO.DeleteFile(PathStatusTmp)
+        If FSO.FileExists(PathPauseTmp) Then FSO.DeleteFile(PathPauseTmp)
+        
+        engineActive = False
+        isLaunchingState = False
+        isTerminatingState = False
+        
+        masterBtn.innerText = "▶ RUN ENGINE"
+        masterBtn.className = "btn-success"
+        masterBtn.disabled = False
+        
+        Call AnimateStatusText("IDLE", "#64748b")
+        document.getElementById("monLoop").innerText = "0 / 0"
+        document.getElementById("monStep").innerText = "-"
+        document.getElementById("boxAtomLoader").style.display = "none"
+        document.getElementById("txtFunTip").innerText = "💡 System ready. Silakan tekan RUN ENGINE untuk memulai eksekusi otomasi."
+        
+        document.getElementById("barLoopProg").style.width = "0%"
+        document.getElementById("txtLoopProg").innerText = "0%"
+        
+        document.getElementById("barTotalProg").className = "progress-bar-fill total"
+        document.getElementById("barTotalProg").style.width = "0%"
+        document.getElementById("txtTotalProg").innerText = "0%"
+        document.getElementById("txtEstTime").innerText = "00:00:00"
+        
+        MsgBox "Seluruh mesin otomasi dihentikan secara aman.", 64, "Proses Dimatikan"
+    End Sub
+</script>
+</body>
+</html>
