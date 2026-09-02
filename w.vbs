@@ -1,5 +1,5 @@
 Dim shotFld
-shotFld = "D:\App\this-aint-rpa-main\ss"
+shotFld = "D:\App\this-aint-rpa-main\screenshot"
 ' GENERATED ENGINE v1.7-pro Mouse Interrupt & Countdown Edition
 Dim shl, ax, fso, currentLoop, maxLoop, runForever, ts, lastPhysX, lastPhysY, capExe
 Set shl = CreateObject("WScript.Shell")
@@ -7,7 +7,7 @@ Set ax = CreateObject("Excel.Application")
 Set fso = CreateObject("Scripting.FileSystemObject")
 capExe = fso.GetParentFolderName(WScript.ScriptFullName) & "\ScreenCap.exe"
 WScript.Sleep 1500
-maxLoop = 1: runForever = False
+maxLoop = 3: runForever = False
 Sub UpdateLastCursorPos()
    On Error Resume Next
    Dim posHex, fullPos
@@ -127,12 +127,8 @@ currentLoop = 0
 Do While (currentLoop < maxLoop) Or runForever
     currentLoop = currentLoop + 1
     Call CheckPhysicalHold()
-    Call LogStatus(1, 2, "Step #1: Langkah 1 [SCREENSHOT REGION]")
-    Call RunScreenshot(shotFld & "\" & "ss_" & (shotCounter + (currentLoop - 1) * 2 + 0) & ".png", 22, 14, 272, 25)
-    WScript.Sleep 900
-    Call CheckPhysicalHold()
-    Call LogStatus(2, 2, "Step #2: Langkah 3 [SCREENSHOT REGION]")
-    Call RunScreenshot(shotFld & "\" & "ss_" & (shotCounter + (currentLoop - 1) * 2 + 1) & ".png", 755, 1019, 51, 59)
+    Call LogStatus(1, 1, "Step #1: Langkah 7 [SCREENSHOT REGION]")
+    Call RunScreenshot(shotFld & "\" & "screenshot_" & (shotCounter + (currentLoop - 1) * 1 + 0) & ".png", 508, 56, 1199, 863)
     WScript.Sleep 900
     If Not runForever And currentLoop >= maxLoop Then Exit Do
     WScript.Sleep 300

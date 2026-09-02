@@ -28,74 +28,64 @@
     <!-- TAB 1: GENERATOR -->
     <div id="tabGenerator" class="tab-content active">
         <div class="card">
-            <span class="hero-kicker">⚡ Automation Control Deck</span>
-            <h1 class="title-wicked">WICKED</h1>
-            <p class="subtitle">
-                <b style="color:#7dd3fc;">write · input · clicked</b> — build your mission, then let the machine run it.<br>
-                Version 1.3 (DynamicHold Enabled) · perfect for the repetitive tasks that make your eyes glaze over.<br>
-                <span style="color:#64748b;">Heads-up:</span> always keep an eye on the script while it runs — you're the pilot, we're just the autopilot. <span style="opacity:.7;">· brought to you by <b>2602884207</b></span>
-            </p>
+            <h1 class="title-wicked"> WICKED </h2>
+            <p class="subtitle">write input and clicked - stable version 1.3 (DynamicHold Enabled) <br> 
+		use this for repetitive bored tasks, suggest when script is running, always supervise it <br>
+		brought to you by <b>2602884207</b>
+		</p>
+            
+            <!-- <div class="button-bar" style="margin-bottom: 20px;">
+                <div class="button-group">
+                    <button class="btn-primary" onclick="vbscript:BtnActionManual('CLICK')">🖱️ Click Manual</button>
+                    <button class="btn-primary" onclick="vbscript:BtnActionManual('DOUBLE CLICK')">🖱️⚡ Dbl Click</button>
+                    <button class="btn-primary" onclick="vbscript:BtnActionManual('RIGHT CLICK')">🖱️ Right Click</button>
+                    <button class="btn-primary" style="background-color: #0284c7;" onclick="vbscript:BtnActionManual('MOVE CURSOR ONLY')">📍 Move Cursor</button>
+                    <button class="btn-primary" onclick="vbscript:TriggerTextCapture()">⌨️ Type Text</button>
+                    <button class="btn-primary" onclick="vbscript:TriggerShortcutCapture()">🖮 Key Shortcut</button>
+                    <button class="btn-primary" style="background-color: #7c3aed;" onclick="vbscript:TriggerProgramCapture()">🛡️ Switch App</button>
+                </div>
+            </div> -->
 
             <div class="info-box">
-                <span class="hotkey-title">🎮 THE REMOTE</span> — every hotkey below captures your cursor position <i>and</i> its pixel color in one shot.<br>
-                <div class="info-group">
-                    <span class="hotkey-title">🖱️ Mouse Playbook</span><br>
-                    <span class="hotkey-line"><kbd>Shift</kbd>+<kbd>C</kbd> Left Click</span> ·
-                    <span class="hotkey-line"><kbd>Shift</kbd>+<kbd>D</kbd> Double Click</span> ·
-                    <span class="hotkey-line"><kbd>Shift</kbd>+<kbd>R</kbd> Right Click</span> ·
-                    <span class="hotkey-line"><kbd>Shift</kbd>+<kbd>M</kbd> Move Cursor</span><br>
-                    <span class="hotkey-line"><kbd>Shift</kbd>+<kbd>W</kbd> Scroll Up</span> ·
-                    <span class="hotkey-line"><kbd>Shift</kbd>+<kbd>S</kbd> Scroll Down</span><br>
-                    <span class="hotkey-line"><kbd>Shift</kbd>+<kbd>O</kbd> Screenshot (Full)</span> ·
-                    <span class="hotkey-line"><kbd>Shift</kbd>+<kbd>I</kbd> Screenshot (Drag Region)</span><br>
-                    <span class="hotkey-line"><kbd>Shift</kbd>+<kbd>E</kbd> Point &amp; Shoot — tweak the selected row's spot</span>
-                </div>
-                <div class="info-group">
-                    <span class="hotkey-title">⌨️ Keyboard &amp; Runtime Playbook</span><br>
-                    <span class="hotkey-line"><kbd>Shift</kbd>+<kbd>T</kbd> Type Text</span> ·
-                    <span class="hotkey-line"><kbd>Shift</kbd>+<kbd>K</kbd> Shortcut Wizard (OSK)</span> ·
-                    <span class="hotkey-line"><kbd>Shift</kbd>+<kbd>P</kbd> Switch &amp; Focus App</span>
-                </div>
-                <div class="info-group">
-                    🧠 <span class="hotkey-title">DynamicHold:</span> record a spot with a hotkey and its pixel color tags along automatically. Drop a <span class="tip-em">Hex Color</span> in the <b>Target Color</b> column to make the engine wait for that exact hue — or set it to <b>STATIC WAIT</b> for a plain timed delay.<br>
-                    💡 <span class="hotkey-title">Multi-Drag:</span> hold <kbd>Ctrl</kbd> + click several rows, then drag them all to reorder the whole squad in one move.
-                </div>
-            </div>
-
-            <div class="hero-buttons">
-                <button class="btn-primary" onclick="vbscript:TriggerTextCapture()">⌨️ Type Text</button>
-                <button class="btn-primary" onclick="vbscript:TriggerShortcutCapture()">🖮 Key Shortcut</button>
-                <button class="btn-primary" style="background-image:linear-gradient(135deg,#7c3aed,#8b5cf6);" onclick="vbscript:TriggerProgramCapture()">🛡️ Switch App</button>
+                <b>GLOBAL MOUSE HOTKEYS (Auto Captures Position & Pixel Color):</b><br>
+                • <kbd>Shift + C</kbd> : Left Click | • <kbd>Shift + D</kbd> : Double Click | • <kbd>Shift + R</kbd> : Right Click | • <kbd>Shift + M</kbd> : Move Cursor Only<br>
+                • <kbd>Shift + W</kbd> : Scroll Up | • <kbd>Shift + S</kbd> : Scroll Down<br>
+                • <kbd>Shift + O</kbd> : Screenshot Full Screen | • <kbd>Shift + I</kbd> : Screenshot Region (Drag Overlay)<br>
+                • <kbd>Shift + E</kbd> : Point & Shoot Edit Baris (Edit Koordinat & Warna Baris yang Dipilih)<br>
+                <b>GLOBAL KEYBOARD & RUNTIME HOTKEYS:</b><br>
+                • <kbd>Shift + T</kbd> : Type Text (Input Dialog) | • <kbd>Shift + K</kbd> : Shortcut Wizard (Exact OSK)<br>
+                • <kbd>Shift + P</kbd> : Switch & Focus Program Target App (Auto Force-Switch Active Window)<br><br>
+                🧠 <b>DynamicHold:</b> Ketika merekam posisi via Hotkey, warna pixel otomatis tercatat! Set kolom 'Target Color' ke Hex Color untuk DynamicHold, atau ubah/kosongkan ke <b>STATIC WAIT</b> jika hanya ingin delay biasa.<br>
+                💡 <b>MULTI-DRAG:</b> Tahan tombol <kbd>Ctrl</kbd> dan klik baris tabel untuk memilih beberapa baris sekaligus, lalu seret (drag & drop) untuk memindahkan semuanya bersamaan.
             </div>
         </div>
 
-        <div class="folder-row">
-            <label class="folder-label" for="inpShotFolder">📁 Evident locker (folder):</label>
-            <input type="text" id="inpShotFolder" class="folder-input" placeholder="misal: screenshot">
-            <span class="folder-hint">Screenshots disimpan ke folder ini (di dalam folder app) dengan nama &lt;folder&gt;_1.png, &lt;folder&gt;_2.png, dst. — tidak akan tertimpa pada sesi berikutnya.</span>
+        <div style="margin: 10px 0; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <label style="font-weight: bold; color: #38bdf8; font-size: 13px;">📁 Screenshot Folder:</label>
+            <input type="text" id="inpShotFolder" placeholder="misal: screenshot" style="padding:7px 10px; width:220px; background:#0b0f17; color:#ffffff; border:1px solid #334155; border-radius:4px;">
+            <span style="font-size:11px; color:#94a3b8;">Screenshots disimpan ke folder ini (di dalam folder app) dengan nama &lt;folder&gt;_1.png, &lt;folder&gt;_2.png, dst. tidak akan tertimpa pada sesi berikutnya.</span>
         </div>
 
         <div class="card">
             <!-- TABEL 1: MAIN SEQUENCE -->
             <div id="boxMainTable" class="table-wrapper active-table-box" onclick="vbscript:SetActiveTable('MAIN')">
                 <div class="table-title-bar">
-                    <h2 class="table-title"><span class="table-ico">🎯</span> MAIN SEQUENCE <span class="active-badge">Active target</span></h2>
+                    <h2 style="margin:0; font-size:18px;">🎯 MAIN SEQUENCE TABLE <span class="active-badge">ACTIVE TARGET</span></h2>
                     <div>
-                        <button class="btn-primary" style="background-image:linear-gradient(135deg,#0284c7,#0ea5e9); padding:7px 14px; font-size:11px;" onclick="vbscript:SaveSequenceMetadata()">💾 Save Sequence</button>
-                        <button class="btn-primary" style="background-image:linear-gradient(135deg,#d97706,#f59e0b); padding:7px 14px; font-size:11px;" onclick="vbscript:LoadSequenceMetadata()">📂 Load Sequence</button>
+                        <button class="btn-primary" style="background-color: #0284c7; padding:6px 12px; font-size:11px;" onclick="vbscript:SaveSequenceMetadata()">💾 Save Sequence</button>
+                        <button class="btn-primary" style="background-color: #d97706; padding:6px 12px; font-size:11px;" onclick="vbscript:LoadSequenceMetadata()">📂 Load Sequence</button>
                     </div>
                 </div>
-                <p class="sub-hint">The main loop — every step below repeats for each loop. Click a row to arm it, then press <kbd>Shift</kbd>+<kbd>E</kbd> to fine-tune its spot.</p>
                 <table class="guide-table" id="reviewTable">
                     <thead>
                         <tr>
-                            <th style="width: 18%;">Step Name</th>
-                            <th style="width: 13%;">Action</th>
-                            <th style="width: 16%;">Spot (X, Y)</th>
+                            <th style="width: 18%;">Nama Langkah</th>
+                            <th style="width: 13%;">Tipe Aksi</th>
+                            <th style="width: 16%;">Koordinat (X, Y)</th>
                             <th style="width: 18%;">Target Color</th>
-                            <th style="width: 20%;">Value / Param</th>
-                            <th style="width: 10%;">Delay (ms)</th>
-                            <th style="width: 5%;">Tools</th>
+                            <th style="width: 20%;">Value / Parameter</th>
+                            <th style="width: 10%;">Hold / Delay (ms)</th>
+                            <th style="width: 5%;">Hapus</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody"></tbody>
@@ -103,28 +93,27 @@
             </div>
 
             <!-- OPSI & TABEL 2: EXTRA SEQUENCE -->
-            <div style="margin: 18px 0;">
-                <label class="extra-toggle-label">
-                    <input type="checkbox" id="chkExtraSeq" onclick="vbscript:ToggleExtraSeqUI()"> ➕ Add Extra Sequence — steps that run once <i>after</i> the whole loop wraps up.
+            <div style="margin-top: 15px; margin-bottom: 15px;">
+                <label style="font-weight: bold; color: #38bdf8; cursor: pointer; font-size: 14px;">
+                    <input type="checkbox" id="chkExtraSeq" onclick="vbscript:ToggleExtraSeqUI()"> ➕ Add Extra Sequence (Langkah ekstra yang dieksekusi setelah seluruh loop utama selesai)
                 </label>
             </div>
 
             <div id="extraSeqBox" class="extra-seq-container">
                 <div id="boxExtraTable" class="table-wrapper" onclick="vbscript:SetActiveTable('EXTRA')">
                     <div class="table-title-bar">
-                        <h3 class="table-title"><span class="table-ico">⚡</span> EXTRA SEQUENCE <span class="active-badge">Active target</span></h3>
+                        <h3 style="margin:0; color:#38bdf8; font-size:16px;">⚡ EXTRA SEQUENCE TABLE <span class="active-badge">ACTIVE TARGET</span></h3>
                     </div>
-                    <p class="sub-hint">The encore — one clean pass after the main loops finish.</p>
                     <table class="guide-table" id="extraReviewTable">
                         <thead>
                             <tr>
-                                <th style="width: 18%;">Step Name</th>
-                                <th style="width: 13%;">Action</th>
-                                <th style="width: 16%;">Spot (X, Y)</th>
+                                <th style="width: 18%;">Nama Langkah</th>
+                                <th style="width: 13%;">Tipe Aksi</th>
+                                <th style="width: 16%;">Koordinat (X, Y)</th>
                                 <th style="width: 18%;">Target Color</th>
-                                <th style="width: 20%;">Value / Param</th>
-                                <th style="width: 10%;">Delay (ms)</th>
-                                <th style="width: 5%;">Tools</th>
+                                <th style="width: 20%;">Value / Parameter</th>
+                                <th style="width: 10%;">Hold / Delay (ms)</th>
+                                <th style="width: 5%;">Hapus</th>
                             </tr>
                         </thead>
                         <tbody id="extraTableBody"></tbody>
@@ -133,16 +122,15 @@
             </div>
 
             <br>
-            <button class="btn-success" style="width: 100%; font-size: 15px; padding: 15px; letter-spacing: 1px;" onclick="vbscript:GenerateVBSOnly()">⚙️ Generate Script Engine</button>
+            <button class="btn-success" style="width: 100%; font-size: 15px; padding: 14px;" onclick="vbscript:GenerateVBSOnly()">💾 Generate Script Engine</button>
         </div>
     </div>
 
     <!-- TAB 2: LAUNCHER -->
     <div id="tabLauncher" class="tab-content">
         <div class="card">
-            <span class="hero-kicker">🛰️ Mission Control</span>
-            <h2 style="margin-bottom:6px;">REAL-TIME EXECUTION OVERWATCH</h2>
-            <p class="subtitle">Fire up the generated script and track every instruction line as it executes, live. You're in command — watch the dials.</p>
+            <h2>REAL-TIME EXECUTION OVERWATCH</h2>
+            <p class="subtitle">Eksekusi file otomasi yang telah di-generate dan pantau progress baris instruksi secara real-time.</p>
             
             <div class="monitor-grid">
                 <div class="monitor-box">
@@ -207,8 +195,8 @@
                 </div>
             </div>
 
-            <div class="action-hub">
-                <button id="btnMasterEngine" class="btn-success run-btn-glow" style="font-size: 16px; padding: 15px 54px; min-width: 240px;" onclick="vbscript:ToggleEngineState()">▶️ RUN ENGINE</button>
+            <div style="text-align: center; padding: 25px; background: #0b0f17; border-radius: 6px; border: 1px solid #1e293b;">
+                <button id="btnMasterEngine" class="btn-success" style="font-size: 15px; padding: 14px 50px; min-width: 240px;" onclick="vbscript:ToggleEngineState()">▶️ RUN ENGINE</button>
             </div>
         </div>
     </div>
@@ -217,7 +205,7 @@
 <!-- MODAL DIALOGS -->
 <div id="shortcutModal" class="modal-overlay">
     <div class="modal-box">
-        <h3>🖮 Pick a Pre-built Shortcut</h3>
+        <h3>Pilih Pre-built Shortcut Wizard</h3>
         <div class="shortcut-grid">
             <button class="btn-shortcut-item" onclick="vbscript:SelectShortcut('^c','Copy')">📄 Copy (Ctrl + C)</button>
             <button class="btn-shortcut-item" onclick="vbscript:SelectShortcut('^v','Paste')">📋 Paste (Ctrl + V)</button>
@@ -235,9 +223,9 @@
 
 <div id="oskModal" class="modal-overlay" style="z-index: 1001;">
     <div class="modal-box" style="width: 820px; background: #111827; border: 1px solid #3b82f6;">
-        <h3 style="color:#ffffff; margin-bottom:10px;">⌨️ Keyboard Combination Builder</h3>
-        <div style="background:rgba(9,14,28,0.9); padding:12px 15px; border-radius:8px; font-weight:700; margin-bottom:15px; font-size:14px; text-align:left; color:#7dd3fc; border: 1px solid rgba(56,189,248,0.30); box-shadow: inset 0 0 20px rgba(56,189,248,0.06);">
-            SendKeys Script Output: <span id="oskPreview" style="color:#f59e0b; text-shadow:0 0 10px rgba(245,158,11,0.5);">-</span>
+        <h3 style="color:#ffffff; margin-bottom:10px;">Keyboard Combination Builder</h3>
+        <div style="background:#0b0f17; padding:12px 15px; border-radius:4px; font-weight:700; margin-bottom:15px; font-size:14px; text-align:left; color:#38bdf8; border: 1px solid #1e293b;">
+            SendKeys Script Output: <span id="oskPreview" style="color:#f59e0b;">-</span>
         </div>
         <div class="exact-osk-window">
             <table class="osk-table-row">
@@ -327,7 +315,7 @@
         </div>
         <div style="margin-bottom: 15px; text-align: left; padding: 0 10px;">
             <label style="font-weight: 700; font-size:13px; display:block; margin-bottom:5px; color:#ffffff;">Nama Custom Shortcut:</label>
-            <input type="text" id="oskShortcutName" class="input-inline" style="width:100%;" value="Custom Combo">
+            <input type="text" id="oskShortcutName" class="input-inline" style="width:100%; padding:8px; background:#0b0f17; color:#ffffff; border:1px solid #334155;" value="Custom Combo">
         </div>
         <button class="btn-success" style="padding: 10px 25px;" onclick="vbscript:SaveOSKShortcut()">Simpan & Terapkan</button>
         <button class="btn-modal-close" style="margin-left:8px;" onclick="vbscript:CloseOSKModal()">❌ Batal</button>
@@ -336,7 +324,7 @@
 
 <div id="programModal" class="modal-overlay">
     <div class="modal-box">
-        <h3>🛡️ Target Window &amp; Switch Focus</h3>
+        <h3>Target Window & Switch Focus Application</h3>
         <p style="font-size:12px; color:#94a3b8; margin-top:-10px; margin-bottom:20px;">Sistem akan otomatis memaksa Windows fokus ke aplikasi ini sebelum eksekusi berlanjut.</p>
         <div class="shortcut-grid">
             <button class="btn-shortcut-item" onclick="vbscript:SelectProgram('Microsoft Word','winword.exe')">📄 Word (winword.exe)</button>
