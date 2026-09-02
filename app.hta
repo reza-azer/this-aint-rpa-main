@@ -462,6 +462,31 @@
         });
     }
 
+    function ClosestRow(el) {
+        while (el && el.tagName !== 'TR') { el = el.parentNode; }
+        return el;
+    }
+
+    function DeleteRowBtn(btn) {
+        var tr = ClosestRow(btn);
+        if (tr && tr.parentNode) { tr.parentNode.removeChild(tr); }
+    }
+
+    function DuplicateRowBtn(btn) {
+        var tr = ClosestRow(btn);
+        if (!tr || !tr.parentNode) { return; }
+        var clone = tr.cloneNode(true);
+        var all = clone.getElementsByTagName('*');
+        for (var i = 0; i < all.length; i++) {
+            if (all[i].getAttribute && all[i].getAttribute('id')) {
+                all[i].removeAttribute('id');
+            }
+        }
+        if (clone.getAttribute && clone.getAttribute('id')) { clone.removeAttribute('id'); }
+        tr.parentNode.insertBefore(clone, tr.nextSibling);
+        InitDragAndDropListeners(clone);
+    }
+
     function UpdateSelectedRowCoordinatesAndColor(x, y, hexColor) {
         var activeTableId = (window.activeTargetTable === 'MAIN') ? 'tableBody' : 'extraTableBody';
         var tbody = document.getElementById(activeTableId);
@@ -939,7 +964,7 @@ Sub AppCleanExit()
             "<input type='text' class='input-inline status-color' id='inp_color_" & stepsCount & "' style='width:75%;' value='" & colorVal & "' onkeyup='UpdateColorChip(""inp_color_" & stepsCount & """, ""chip_" & stepsCount & """)'>"
         row.insertCell(4).innerHTML = "<input type='text' class='input-inline status-param' id='inp_param_" & stepsCount & "' value='" & paramVal & "'>"
         row.insertCell(5).innerHTML = "<input type='text' class='input-inline status-delay' id='inp_delay_" & stepsCount & "' value='" & delayMs & "'>"
-        row.insertCell(6).innerHTML = "<button class='btn-danger' style='padding:4px 8px; font-size:11px;' onclick='vbscript:DeleteRow(" & stepsCount & ")'>❌</button>"
+        row.insertCell(6).innerHTML = "<button class='btn-dup' style='padding:4px 8px; font-size:11px;' onclick='DuplicateRowBtn(this)'>📋</button> <button class='btn-danger' style='padding:4px 8px; font-size:11px;' onclick='DeleteRowBtn(this)'>❌</button>"
         
         Call InitDragAndDropListeners(row)
         document.body.focus()
@@ -974,7 +999,7 @@ Sub AppCleanExit()
             "<input type='text' class='input-inline status-color' id='ext_inp_color_" & extraStepsCount & "' style='width:75%;' value='" & colorVal & "' onkeyup='UpdateColorChip(""ext_inp_color_" & extraStepsCount & """, ""ext_chip_" & extraStepsCount & """)'>"
         row.insertCell(4).innerHTML = "<input type='text' class='input-inline status-param' id='ext_inp_param_" & extraStepsCount & "' value='" & paramVal & "'>"
         row.insertCell(5).innerHTML = "<input type='text' class='input-inline status-delay' id='ext_inp_delay_" & extraStepsCount & "' value='" & delayMs & "'>"
-        row.insertCell(6).innerHTML = "<button class='btn-danger' style='padding:4px 8px; font-size:11px;' onclick='vbscript:DeleteExtraRow(" & extraStepsCount & ")'>❌</button>"
+        row.insertCell(6).innerHTML = "<button class='btn-dup' style='padding:4px 8px; font-size:11px;' onclick='DuplicateRowBtn(this)'>📋</button> <button class='btn-danger' style='padding:4px 8px; font-size:11px;' onclick='DeleteRowBtn(this)'>❌</button>"
         
         Call InitDragAndDropListeners(row)
     End Sub
@@ -982,18 +1007,6 @@ Sub AppCleanExit()
     Function IIf(rel, trueVal, falseVal)
         If rel Then IIf = trueVal Else IIf = falseVal
     End Function
-
-    Sub DeleteRow(id)
-        Dim row
-        Set row = document.getElementById("row_" & id)
-        row.parentNode.removeChild(row)
-    End Sub
-
-    Sub DeleteExtraRow(id)
-        Dim row
-        Set row = document.getElementById("ext_row_" & id)
-        row.parentNode.removeChild(row)
-    End Sub
 
     Sub SaveSequenceMetadata()
         Dim PathMeta, FileMeta, tbody, rows, rowIdx
