@@ -1,0 +1,5 @@
+[MAIN]
+Langkah 1||CLICK||1003, 409||#060816||-||600
+[EXTRA]
+Extra Step 1||CLICK||-, -||STATIC WAIT||-||600
+Extra Step 2||CLICK||1092, 667||#0A0F1D||-||600

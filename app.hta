@@ -352,6 +352,17 @@
     </div>
 </div>
 
+<div id="sequencePickerModal" class="modal-overlay" style="z-index: 1001;">
+    <div class="modal-box" style="width: 560px;">
+        <h3>📂 Load Saved Sequence</h3>
+        <p class="sub-hint" style="margin-bottom:12px;">Pick a sequence to load into the tables:</p>
+        <div class="sequence-list" id="sequenceListContainer">
+            <!-- populated by VBScript PopulateSequencePicker() -->
+        </div>
+        <button class="btn-modal-close" onclick="vbscript:CloseSequencePicker()">❌ Cancel</button>
+    </div>
+</div>
+
 <script type="text/javascript">
     var draggedRows = [];
     var lastSelectedRow = null;
@@ -1021,69 +1032,190 @@ Sub AppCleanExit()
     End Function
 
     Sub SaveSequenceMetadata()
-        Dim PathMeta, FileMeta, tbody, rows, rowIdx
-        Set tbody = document.getElementById("tableBody")
-        Set rows = tbody.rows
-        If rows.length = 0 Then MsgBox "Tabel kosong.", 48, "Peringatan" : Exit Sub
-        
-        PathMeta = wshShell.CurrentDirectory & "\sequence_config.txt"
-        Set FileMeta = FSO.CreateTextFile(PathMeta, True)
-        For rowIdx = 0 To rows.length - 1
-            Dim curRow
-            Set curRow = rows(rowIdx)
-            FileMeta.WriteLine curRow.getElementsByClassName("status-name")(0).value & "||" & _
-                               curRow.getElementsByClassName("status-act")(0).value & "||" & _
-                               curRow.getElementsByClassName("status-coord")(0).value & "||" & _
-                               curRow.getElementsByClassName("status-color")(0).value & "||" & _
-                               curRow.getElementsByClassName("status-param")(0).value & "||" & _
-                               curRow.getElementsByClassName("status-delay")(0).value
-        Next
+        Dim seqName, seqFolder, seqPath, FileMeta
+        Dim mainTbody, mainRows, extTbody, extRows
+        Dim hasMain, hasExtra, rowIdx, curRow
+
+        Set mainTbody = document.getElementById("tableBody")
+        Set mainRows = mainTbody.rows
+        Set extTbody = document.getElementById("extraTableBody")
+        Set extRows = extTbody.rows
+        hasMain = (mainRows.length > 0)
+        hasExtra = (document.getElementById("chkExtraSeq").checked And extRows.length > 0)
+
+        If Not hasMain And Not hasExtra Then MsgBox "Both tables are empty. Nothing to save.", 48, "Warning" : Exit Sub
+
+        seqName = InputBox("Enter a name for this sequence:" & vbCrLf & vbCrLf & _
+                           "Letters, numbers, spaces, hyphens, underscores allowed." & vbCrLf & _
+                           "Invalid characters will be removed.", _
+                           "Save Sequence", "MySequence")
+        If Trim(seqName) = "" Then Exit Sub
+
+        seqName = SanitizeSequenceName(seqName)
+        If seqName = "" Then MsgBox "Name is empty after sanitizing.", 48, "Error" : Exit Sub
+
+        seqFolder = wshShell.CurrentDirectory & "\sequences"
+        If Not FSO.FolderExists(seqFolder) Then FSO.CreateFolder seqFolder
+
+        seqPath = seqFolder & "\" & seqName & ".txt"
+        If FSO.FileExists(seqPath) Then
+            If MsgBox("A sequence named '" & seqName & "' already exists." & vbCrLf & vbCrLf & _
+                       "Overwrite it?", 36, "Confirm Overwrite") <> 6 Then Exit Sub
+        End If
+
+        Set FileMeta = FSO.CreateTextFile(seqPath, True)
+
+        If hasMain Then
+            FileMeta.WriteLine "[MAIN]"
+            For rowIdx = 0 To mainRows.length - 1
+                Set curRow = mainRows(rowIdx)
+                FileMeta.WriteLine curRow.getElementsByClassName("status-name")(0).value & "||" & _
+                                   curRow.getElementsByClassName("status-act")(0).value & "||" & _
+                                   curRow.getElementsByClassName("status-coord")(0).value & "||" & _
+                                   curRow.getElementsByClassName("status-color")(0).value & "||" & _
+                                   curRow.getElementsByClassName("status-param")(0).value & "||" & _
+                                   curRow.getElementsByClassName("status-delay")(0).value
+            Next
+        End If
+
+        If hasExtra Then
+            FileMeta.WriteLine "[EXTRA]"
+            For rowIdx = 0 To extRows.length - 1
+                Set curRow = extRows(rowIdx)
+                FileMeta.WriteLine curRow.getElementsByClassName("status-name")(0).value & "||" & _
+                                   curRow.getElementsByClassName("status-act")(0).value & "||" & _
+                                   curRow.getElementsByClassName("status-coord")(0).value & "||" & _
+                                   curRow.getElementsByClassName("status-color")(0).value & "||" & _
+                                   curRow.getElementsByClassName("status-param")(0).value & "||" & _
+                                   curRow.getElementsByClassName("status-delay")(0).value
+            Next
+        End If
+
         FileMeta.Close
-        MsgBox "Metadata berhasil disimpan!", 64, "Save Metadata Sukses"
+        MsgBox "Sequence '" & seqName & "' saved successfully!", 64, "Save Successful"
     End Sub
 
-    Sub LoadSequenceMetadata()
-        Dim PathMeta, objFile, lineStr, parts, hasValidData
-        PathMeta = wshShell.CurrentDirectory & "\sequence_config.txt"
-        If Not FSO.FileExists(PathMeta) Then MsgBox "File 'sequence_config.txt' tidak ada.", 48, "Error" : Exit Sub
-        
-        hasValidData = False
-        Set objFile = FSO.OpenTextFile(PathMeta, 1)
-        Do Until objFile.AtEndOfStream
-            lineStr = Trim(objFile.ReadLine)
-            If lineStr <> "" Then
-                hasValidData = True
-                Exit Do
-            End If
-        Loop
-        objFile.Close
+    Function SanitizeSequenceName(raw)
+        Dim c, i, allowed
+        allowed = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 -_"
+        raw = Trim(raw)
+        SanitizeSequenceName = ""
+        For i = 1 To Len(raw)
+            c = Mid(raw, i, 1)
+            If InStr(allowed, c) > 0 Then SanitizeSequenceName = SanitizeSequenceName & c
+        Next
+        If Len(SanitizeSequenceName) > 60 Then SanitizeSequenceName = Left(SanitizeSequenceName, 60)
+    End Function
 
-        ' KETENTUAN 1: COPY/LOAD TABEL KOSONG MAKA FLOW LANGSUNG TERMINATED
-        If Not hasValidData Then
-            document.getElementById("tableBody").innerHTML = ""
-            stepsCount = 0
-            MsgBox "Sequence metadata kosong (blank)! Flow otomatis di-terminate.", 16, "Flow Terminated"
+    Sub LoadSequenceMetadata()
+        Dim seqFolder, seqFolderObj, seqFile, f, itemCount
+        seqFolder = wshShell.CurrentDirectory & "\sequences"
+
+        If Not FSO.FolderExists(seqFolder) Then
+            MsgBox "No saved sequences found." & vbCrLf & vbCrLf & _
+                   "Create one by clicking 'Save Sequence' first.", 48, "No Sequences"
             Exit Sub
         End If
 
+        Set seqFolderObj = FSO.GetFolder(seqFolder)
+        itemCount = 0
+        ReDim seqFileNames(0), seqFileDates(0), seqFileSizes(0)
+        For Each f In seqFolderObj.Files
+            If LCase(FSO.GetExtensionName(f.Name)) = "txt" Then
+                If itemCount > 0 Then ReDim Preserve seqFileNames(itemCount), seqFileDates(itemCount), seqFileSizes(itemCount)
+                seqFileNames(itemCount) = Left(f.Name, Len(f.Name) - 4)
+                seqFileDates(itemCount) = FormatDateTime(f.DateLastModified, vbShortDate) & " " & FormatDateTime(f.DateLastModified, vbShortTime)
+                seqFileSizes(itemCount) = FormatFileSize(f.Size)
+                itemCount = itemCount + 1
+            End If
+        Next
+
+        If itemCount = 0 Then
+            MsgBox "No saved sequences found." & vbCrLf & vbCrLf & _
+                   "Create one by clicking 'Save Sequence' first.", 48, "No Sequences"
+            Exit Sub
+        End If
+
+        Call PopulateSequencePicker(seqFileNames, seqFileDates, seqFileSizes, itemCount)
+    End Sub
+
+    Function FormatFileSize(bytesVal)
+        If bytesVal < 1024 Then
+            FormatFileSize = bytesVal & " B"
+        ElseIf bytesVal < 1048576 Then
+            FormatFileSize = Round(bytesVal / 1024, 1) & " KB"
+        Else
+            FormatFileSize = Round(bytesVal / 1048576, 1) & " MB"
+        End If
+    End Function
+
+    Sub PopulateSequencePicker(names, dates, sizes, count)
+        Dim html, i
+        html = ""
+        For i = 0 To count - 1
+            html = html & "<div class='sequence-list-item' onclick=""vbscript:PickSequence('" & Replace(names(i), "'", "\'") & ".txt')"">" & _
+                           "<span class='seq-name'>" & names(i) & "</span>" & _
+                           "<span class='seq-meta'>" & sizes(i) & " &middot; " & dates(i) & "</span></div>"
+        Next
+        document.getElementById("sequenceListContainer").innerHTML = html
+        document.getElementById("sequencePickerModal").style.display = "flex"
+    End Sub
+
+    Sub PickSequence(filename)
+        Dim seqFolder, seqPath, objFile, lineStr, parts, section
+        document.getElementById("sequencePickerModal").style.display = "none"
+
+        seqPath = wshShell.CurrentDirectory & "\sequences\" & filename
+
         document.getElementById("tableBody").innerHTML = ""
         stepsCount = 0
-        Set objFile = FSO.OpenTextFile(PathMeta, 1)
+        document.getElementById("extraTableBody").innerHTML = ""
+        extraStepsCount = 0
+
+        If Not FSO.FileExists(seqPath) Then MsgBox "File not found: " & filename, 48, "Error" : Exit Sub
+
+        section = ""
+        Set objFile = FSO.OpenTextFile(seqPath, 1)
         Do Until objFile.AtEndOfStream
             lineStr = Trim(objFile.ReadLine)
             If lineStr <> "" Then
-                parts = Split(lineStr, "||")
-                If UBound(parts) = 5 Then
-                    Dim pX, pY
-                    pX = "-" : pY = "-"
-                    If InStr(parts(2), ",") > 0 Then pX = Trim(Split(parts(2), ",")(0)) : pY = Trim(Split(parts(2), ",")(1))
-                    Call AddMainActionRow(parts(1), pX, pY, parts(3), parts(4), parts(5))
-                    document.getElementById("inp_name_" & stepsCount).value = parts(0)
+                If lineStr = "[MAIN]" Then
+                    section = "[MAIN]"
+                ElseIf lineStr = "[EXTRA]" Then
+                    section = "[EXTRA]"
+                ElseIf section <> "" Then
+                    parts = Split(lineStr, "||")
+                    If UBound(parts) = 5 Then
+                        Dim pX, pY
+                        pX = "-" : pY = "-"
+                        If InStr(parts(2), ",") > 0 Then pX = Trim(Split(parts(2), ",")(0)) : pY = Trim(Split(parts(2), ",")(1))
+
+                        If section = "[MAIN]" Then
+                            Call AddMainActionRow(parts(1), pX, pY, parts(3), parts(4), parts(5))
+                            document.getElementById("inp_name_" & stepsCount).value = parts(0)
+                        ElseIf section = "[EXTRA]" Then
+                            Call AddExtraActionRow(parts(1), pX, pY, parts(3), parts(4), parts(5))
+                            document.getElementById("ext_inp_name_" & extraStepsCount).value = parts(0)
+                        End If
+                    End If
                 End If
             End If
         Loop
         objFile.Close
-        MsgBox "Metadata berhasil di-load!", 64, "Sukses"
+
+        If extraStepsCount > 0 Then
+            document.getElementById("chkExtraSeq").checked = True
+            document.getElementById("extraSeqBox").className = "extra-seq-container active"
+        Else
+            document.getElementById("chkExtraSeq").checked = False
+            document.getElementById("extraSeqBox").className = "extra-seq-container"
+        End If
+
+        MsgBox "Sequence loaded from '" & Left(filename, Len(filename) - 4) & "'!", 64, "Load Successful"
+    End Sub
+
+    Sub CloseSequencePicker()
+        document.getElementById("sequencePickerModal").style.display = "none"
     End Sub
 
     Function GetShotFolderName()

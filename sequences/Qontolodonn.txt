@@ -1,0 +1,6 @@
+[MAIN]
+Langkah 2||CLICK||1033, 399||#0B1122||-||600
+Langkah 3||MOVE CURSOR ONLY||800, 403||#0A101E||-||600
+[EXTRA]
+Extra Step 3||WRITE||-, -||STATIC WAIT||jokowi||600
+Extra Step 4||WRITE||-, -||STATIC WAIT||ee||600
