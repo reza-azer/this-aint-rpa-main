@@ -1,10 +1,13 @@
+Dim shotFld
+shotFld = "D:\App\this-aint-rpa-main\screenshot"
 ' GENERATED ENGINE v1.7-pro Mouse Interrupt & Countdown Edition
-Dim shl, ax, fso, currentLoop, maxLoop, runForever, ts, lastPhysX, lastPhysY
+Dim shl, ax, fso, currentLoop, maxLoop, runForever, ts, lastPhysX, lastPhysY, capExe
 Set shl = CreateObject("WScript.Shell")
 Set ax = CreateObject("Excel.Application")
 Set fso = CreateObject("Scripting.FileSystemObject")
+capExe = fso.GetParentFolderName(WScript.ScriptFullName) & "\ScreenCap.exe"
 WScript.Sleep 1500
-maxLoop = 1: runForever = False
+maxLoop = 3: runForever = False
 Sub UpdateLastCursorPos()
    On Error Resume Next
    Dim posHex, fullPos
@@ -110,17 +113,23 @@ Sub AutoSwitchActiveWindow(targetTitle)
        End If
    Loop
 End Sub
+Sub RunScreenshot(outFile, rx, ry, rw, rh)
+   On Error Resume Next
+   If Not fso.FileExists(capExe) Then Exit Sub
+   If rx >= 0 And rw > 0 Then
+    shl.Run Chr(34) & capExe & Chr(34) & " region " & Chr(34) & outFile & Chr(34) & " " & rx & " " & ry & " " & rw & " " & rh, 0, True
+   Else
+    shl.Run Chr(34) & capExe & Chr(34) & " full " & Chr(34) & outFile & Chr(34), 0, True
+   End If
+   WScript.Sleep 200
+End Sub
 currentLoop = 0
 Do While (currentLoop < maxLoop) Or runForever
     currentLoop = currentLoop + 1
     Call CheckPhysicalHold()
-    Call LogStatus(1, 2, "Step #1: Langkah 1 [SCROLL UP]")
-    ax.ExecuteExcel4Macro "CALL(""user32"",""mouse_event"",""JJJJJJ"",2048,0,0,600,0)"
-    WScript.Sleep 300
-    Call CheckPhysicalHold()
-    Call LogStatus(2, 2, "Step #2: Langkah 2 [SCROLL DOWN]")
-    ax.ExecuteExcel4Macro "CALL(""user32"",""mouse_event"",""JJJJJJ"",2048,0,0,-600,0)"
-    WScript.Sleep 300
+    Call LogStatus(1, 1, "Step #1: Langkah 7 [SCREENSHOT REGION]")
+    Call RunScreenshot(shotFld & "\" & "screenshot_" & (shotCounter + (currentLoop - 1) * 1 + 0) & ".png", 508, 56, 1199, 863)
+    WScript.Sleep 900
     If Not runForever And currentLoop >= maxLoop Then Exit Do
     WScript.Sleep 300
 Loop
