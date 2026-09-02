@@ -7,7 +7,7 @@ Set ax = CreateObject("Excel.Application")
 Set fso = CreateObject("Scripting.FileSystemObject")
 capExe = fso.GetParentFolderName(WScript.ScriptFullName) & "\ScreenCap.exe"
 WScript.Sleep 1500
-maxLoop = 3: runForever = False
+maxLoop = 789: runForever = False
 Sub UpdateLastCursorPos()
    On Error Resume Next
    Dim posHex, fullPos
@@ -127,9 +127,13 @@ currentLoop = 0
 Do While (currentLoop < maxLoop) Or runForever
     currentLoop = currentLoop + 1
     Call CheckPhysicalHold()
-    Call LogStatus(1, 1, "Step #1: Langkah 7 [SCREENSHOT REGION]")
-    Call RunScreenshot(shotFld & "\" & "screenshot_" & (shotCounter + (currentLoop - 1) * 1 + 0) & ".png", 508, 56, 1199, 863)
-    WScript.Sleep 900
+    Call LogStatus(1, 1, "Step #1: Langkah 1 [CLICK]")
+    Call WaitDynamicHoldColor(247, 308, "#0C1C44")
+    ax.ExecuteExcel4Macro "CALL(""user32"",""SetCursorPos"",""JJJ"",247,308)"
+    ax.ExecuteExcel4Macro "CALL(""user32"",""mouse_event"",""JJJJJJ"",2,0,0,0,0)"
+    ax.ExecuteExcel4Macro "CALL(""user32"",""mouse_event"",""JJJJJJ"",4,0,0,0,0)"
+    Call UpdateLastCursorPos()
+    WScript.Sleep 600
     If Not runForever And currentLoop >= maxLoop Then Exit Do
     WScript.Sleep 300
 Loop

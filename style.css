@@ -392,6 +392,21 @@ button:disabled { opacity: 0.55; cursor: not-allowed !important; transform: none
     text-shadow: 0 0 14px rgba(56,189,248,0.65);
 }
 
+/* Realistic two-layer 7-seg: dim ghost segments behind the live lit value */
+.sevenseg-wrap { position: relative; display: inline-block; }
+.sevenseg-ghost {
+    position: absolute;
+    top: 0; left: 0;
+    color: rgba(148, 163, 184, 0.40);
+    text-shadow: none;
+    letter-spacing: 2px;
+}
+.sevenseg-live {
+    position: relative;
+    color: #38bdf8;
+    text-shadow: 0 0 14px rgba(56,189,248,0.65);
+}
+
 /* ---------- Fun tips widget ---------- */
 .tips-container {
     display: flex;

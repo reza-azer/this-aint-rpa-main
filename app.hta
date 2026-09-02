@@ -153,7 +153,7 @@
                 </div>
                 <div class="monitor-box">
                     <span class="monitor-label">LOOP TRACKER</span>
-                    <div id="monLoop" class="digital-7seg">0 / 0</div>
+                    <div id="monLoop" class="digital-7seg sevenseg-wrap"><span class="sevenseg-ghost" id="monLoopGhost">8 / 8</span><span class="sevenseg-live" id="monLoopLive">0 / 0</span></div>
                 </div>
                 <div class="monitor-box">
                     <span class="monitor-label">CURRENT EXECUTING STEP</span>
@@ -1031,6 +1031,26 @@ Sub AppCleanExit()
         If rel Then IIf = trueVal Else IIf = falseVal
     End Function
 
+    Function MakeGhostDigits(rawStr)
+        Dim i, ch, out
+        out = ""
+        For i = 1 To Len(rawStr)
+            ch = Mid(rawStr, i, 1)
+            If ch >= "0" And ch <= "9" Then ch = "8"
+            out = out & ch
+        Next
+        MakeGhostDigits = out
+    End Function
+
+    Sub UpdateLoopTracker(valueStr)
+        Dim ghostEl, liveEl
+        Set ghostEl = document.getElementById("monLoopGhost")
+        Set liveEl = document.getElementById("monLoopLive")
+        If ghostEl Is Nothing Or liveEl Is Nothing Then Exit Sub
+        ghostEl.innerText = MakeGhostDigits(valueStr)
+        liveEl.innerText = valueStr
+    End Sub
+
     Sub SaveSequenceMetadata()
         Dim seqName, seqFolder, seqPath, FileMeta
         Dim mainTbody, mainRows, extTbody, extRows
@@ -1770,7 +1790,7 @@ Sub ReadStatusLog()
             End If
             
             Call AnimateStatusText("IDLE", "#64748b")
-            document.getElementById("monLoop").innerText = "0 / 0"
+            Call UpdateLoopTracker("0 / 0")
             document.getElementById("monStep").innerText = "-"
             document.getElementById("boxAtomLoader").style.display = "none"
             document.getElementById("txtFunTip").innerText = "💡 System ready. Silakan tekan RUN ENGINE untuk memulai eksekusi otomasi."
@@ -1819,7 +1839,7 @@ Sub ReadStatusLog()
                         
                         Call AnimateStatusText("RUNNING", "#10b981")
                         
-                        document.getElementById("monLoop").innerText = parts(0)
+                        Call UpdateLoopTracker(parts(0))
                         document.getElementById("monStep").innerText = parts(2)
                         
                         If UBound(parts) >= 1 Then
@@ -1925,7 +1945,7 @@ Sub ControlStop()
         masterBtn.disabled = False
         
         Call AnimateStatusText("IDLE", "#64748b")
-        document.getElementById("monLoop").innerText = "0 / 0"
+        Call UpdateLoopTracker("0 / 0")
         document.getElementById("monStep").innerText = "-"
         document.getElementById("boxAtomLoader").style.display = "none"
         document.getElementById("txtFunTip").innerText = "💡 System ready. Silakan tekan RUN ENGINE untuk memulai eksekusi otomasi."
