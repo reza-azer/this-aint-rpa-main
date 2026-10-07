@@ -1,8 +1,8 @@
-<!-- v1.4.1 -->
+<!-- v1.5.0 -->
 <!DOCTYPE html>
 <html>
 <head>
-    <title>WCK-v1.4.1 DynamicHold Edition</title>
+    <title>WCK-v1.5.0 Multi-Sequence Edition</title>
     <meta http-equiv="X-UA-Compatible" content="IE=10">
     <meta charset="UTF-8">
     <hta:application 
@@ -32,7 +32,7 @@
             <h1 class="title-wicked">WICKED</h1>
             <p class="subtitle">
                 <b style="color:#7dd3fc;">write · input · clicked</b> — build your mission, then let the machine run it.<br>
-                Version 1.3 (DynamicHold Enabled) · perfect for the repetitive tasks that make your eyes glaze over.<br>
+                Version 1.5 (Multi-Sequence Enabled) · one MAIN loop + unlimited branchable sequences via <b>CHECK PIXEL</b> triggers.<br>
                 <span style="color:#64748b;">Heads-up:</span> always keep an eye on the script while it runs — you're the pilot, we're just the autopilot. <span style="opacity:.7;">· brought to you by <b>2602884207</b></span>
             </p>
 
@@ -54,7 +54,8 @@
                     <span class="hotkey-title">⌨️ Keyboard &amp; Runtime Playbook</span><br>
                     <span class="hotkey-line"><kbd>Shift</kbd>+<kbd>T</kbd> Type Text</span> ·
                     <span class="hotkey-line"><kbd>Shift</kbd>+<kbd>K</kbd> Shortcut Wizard (OSK)</span> ·
-                    <span class="hotkey-line"><kbd>Shift</kbd>+<kbd>P</kbd> Switch &amp; Focus App</span>
+                    <span class="hotkey-line"><kbd>Shift</kbd>+<kbd>P</kbd> Switch &amp; Focus App</span> ·
+                    <span class="hotkey-line"><kbd>Shift</kbd>+<kbd>X</kbd> Check Pixel (branch trigger)</span>
                 </div>
                 <div class="info-group">
                     🧠 <span class="hotkey-title">DynamicHold:</span> record a spot with a hotkey and its pixel color tags along automatically. Drop a <span class="tip-em">Hex Color</span> in the <b>Target Color</b> column to make the engine wait for that exact hue — or set it to <b>STATIC WAIT</b> for a plain timed delay.<br>
@@ -75,66 +76,47 @@
             <span class="folder-hint">Screenshots disimpan ke folder ini (di dalam folder app) dengan nama &lt;folder&gt;_1.png, &lt;folder&gt;_2.png, dst. — tidak akan tertimpa pada sesi berikutnya.</span>
         </div>
 
-        <div class="card">
-            <!-- TABEL 1: MAIN SEQUENCE -->
-            <div id="boxMainTable" class="table-wrapper active-table-box" onclick="vbscript:SetActiveTable('MAIN')">
-                <div class="table-title-bar">
-                    <h2 class="table-title"><span class="table-ico">🎯</span> MAIN SEQUENCE <span class="active-badge">Active target</span></h2>
-                    <div>
-                        <button class="btn-primary" style="background-image:linear-gradient(135deg,#0284c7,#0ea5e9); padding:7px 14px; font-size:11px;" onclick="vbscript:SaveSequenceMetadata()">💾 Save Sequence</button>
-                        <button class="btn-primary" style="background-image:linear-gradient(135deg,#d97706,#f59e0b); padding:7px 14px; font-size:11px;" onclick="vbscript:LoadSequenceMetadata()">📂 Load Sequence</button>
-                    </div>
+<div class="card">
+                <!-- SEQUENCE TABS BAR -->
+                <div class="seq-tabs-bar">
+                    <span class="seq-tabs-label">🧩 Sequences</span>
+                    <div class="seq-tabs-container" id="seqTabsContainer"><!-- filled by RebuildSeqTabs --></div>
+                    <button class="btn-seq-add" onclick="vbscript:AddNewSequence()">＋ New Sequence</button>
                 </div>
-                <p class="sub-hint">The main loop — every step below repeats for each loop. Click a row to arm it, then press <kbd>Shift</kbd>+<kbd>E</kbd> to fine-tune its spot.</p>
-                <table class="guide-table" id="reviewTable">
-                    <thead>
-                        <tr>
-                            <th style="width: 18%;">Step Name</th>
-                            <th style="width: 13%;">Action</th>
-                            <th style="width: 16%;">Spot (X, Y)</th>
-                            <th style="width: 18%;">Target Color</th>
-                            <th style="width: 20%;">Value / Param</th>
-                            <th style="width: 10%;">Delay (ms)</th>
-                            <th style="width: 5%;">Tools</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableBody"></tbody>
-                </table>
-            </div>
 
-            <!-- OPSI & TABEL 2: EXTRA SEQUENCE -->
-            <div style="margin: 18px 0;">
-                <label class="extra-toggle-label">
-                    <input type="checkbox" id="chkExtraSeq" onclick="vbscript:ToggleExtraSeqUI()"> ➕ Add Extra Sequence — steps that run once <i>after</i> the whole loop wraps up.
-                </label>
-            </div>
-
-            <div id="extraSeqBox" class="extra-seq-container">
-                <div id="boxExtraTable" class="table-wrapper" onclick="vbscript:SetActiveTable('EXTRA')">
-                    <div class="table-title-bar">
-                        <h3 class="table-title"><span class="table-ico">⚡</span> EXTRA SEQUENCE <span class="active-badge">Active target</span></h3>
+                <!-- SEQUENCE PANELS -->
+                <div id="seqContainer">
+                    <!-- MAIN SEQUENCE panel (fixed, always exists) -->
+                    <div id="seqPanel_MAIN" class="table-wrapper seq-panel seq-panel-active active-table-box">
+                        <div class="table-title-bar">
+                            <h2 class="table-title"><span class="table-ico">🎯</span> <span id="seqTitle_MAIN">MAIN SEQUENCE</span> <span class="active-badge">Active target</span></h2>
+                            <div>
+                                <button class="btn-primary" style="background-image:linear-gradient(135deg,#0284c7,#0ea5e9); padding:7px 14px; font-size:11px;" onclick="vbscript:SaveSequenceMetadata()">💾 Save Sequence</button>
+                                <button class="btn-primary" style="background-image:linear-gradient(135deg,#d97706,#f59e0b); padding:7px 14px; font-size:11px;" onclick="vbscript:LoadSequenceMetadata()">📂 Load Sequence</button>
+                            </div>
+                        </div>
+                        <p class="sub-hint">The main loop — every step below repeats for each loop. <b>CHECK PIXEL</b> memicu percabangan: <b>WAIT</b> (do nothing, tunggu warna cocok), <b>SKIP</b> (lompat ke perulangan berikutnya), atau <b>SWITCH</b> (ganti ke sequence lain sekali jalan, lalu lanjut step MAIN berikutnya).</p>
+                        <table class="guide-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 18%;">Step Name</th>
+                                    <th style="width: 13%;">Action</th>
+                                    <th style="width: 16%;">Spot (X, Y)</th>
+                                    <th style="width: 18%;">Target Color</th>
+                                    <th style="width: 20%;">Value / Param</th>
+                                    <th style="width: 10%;">Delay (ms)</th>
+                                    <th style="width: 5%;">Tools</th>
+                                </tr>
+                            </thead>
+                            <tbody id="seqTbody_MAIN" data-seqname="MAIN"></tbody>
+                        </table>
                     </div>
-                    <p class="sub-hint">The encore — one clean pass after the main loops finish.</p>
-                    <table class="guide-table" id="extraReviewTable">
-                        <thead>
-                            <tr>
-                                <th style="width: 18%;">Step Name</th>
-                                <th style="width: 13%;">Action</th>
-                                <th style="width: 16%;">Spot (X, Y)</th>
-                                <th style="width: 18%;">Target Color</th>
-                                <th style="width: 20%;">Value / Param</th>
-                                <th style="width: 10%;">Delay (ms)</th>
-                                <th style="width: 5%;">Tools</th>
-                            </tr>
-                        </thead>
-                        <tbody id="extraTableBody"></tbody>
-                    </table>
+                    <!-- extra sequence panels are appended here by VBScript -->
                 </div>
-            </div>
 
-            <br>
-            <button class="btn-success" style="width: 100%; font-size: 15px; padding: 15px; letter-spacing: 1px;" onclick="vbscript:GenerateVBSOnly()">⚙️ Generate Script Engine</button>
-        </div>
+                <br>
+                <button class="btn-success" style="width: 100%; font-size: 15px; padding: 15px; letter-spacing: 1px;" onclick="vbscript:GenerateVBSOnly()">⚙️ Generate Script Engine</button>
+            </div>
     </div>
 
     <!-- TAB 2: LAUNCHER -->
@@ -511,7 +493,7 @@
     }
 
     function UpdateSelectedRowCoordinatesAndColor(x, y, hexColor) {
-        var activeTableId = (window.activeTargetTable === 'MAIN') ? 'tableBody' : 'extraTableBody';
+        var activeTableId = window.activeSeqTbodyId || 'seqTbody_MAIN';
         var tbody = document.getElementById(activeTableId);
         if (!tbody) return false;
         
@@ -544,13 +526,64 @@
         }, 200);
     }
 
-    function UpdateColorChip(inputId, chipId) {
-        var val = document.getElementById(inputId).value.trim();
-        var chip = document.getElementById(chipId);
-        if (val.indexOf("#") === 0 && (val.length === 7)) {
-            chip.style.backgroundColor = val;
+    function UpdateColorChip(inputEl) {
+        var val = inputEl ? inputEl.value.trim() : '';
+        var chip = inputEl ? inputEl.parentNode.querySelector('.color-preview-chip') : null;
+        if (chip) {
+            if (val.indexOf("#") === 0 && val.length === 7) {
+                chip.style.backgroundColor = val;
+            } else {
+                chip.style.backgroundColor = "transparent";
+            }
+        }
+    }
+
+    // --- Multi-sequence: dynamic Value/Param cell (CHECK PIXEL branch selector) ---
+    window.arrSeqNamesJS = ["MAIN"];
+
+    function SetSeqList(delimStr) {
+        window.arrSeqNamesJS = String(delimStr).split('|');
+    }
+
+    function BuildBranchSelect(curVal, seqName) {
+        var html = "<select class='select-inline status-param'>";
+        function optTag(v, label, isSel) {
+            return "<option value='" + v + "'" + (isSel ? " selected" : "") + ">" + label + "</option>";
+        }
+        curVal = String(curVal || '');
+        var curUp = curVal.toUpperCase();
+        html += optTag("WAIT", "WAIT \u2014 Do nothing (nunggu warna cocok)",
+                       (curVal === '' || curUp === 'WAIT'));
+        html += optTag("SKIP", "SKIP \u2014 Lompat ke perulangan berikutnya", curUp === 'SKIP');
+        var names = window.arrSeqNamesJS || ["MAIN"];
+        for (var i = 0; i < names.length; i++) {
+            var n = names[i];
+            if (!n || n.toUpperCase() === String(seqName).toUpperCase()) continue;
+            var v = "SEQ:" + n;
+            html += optTag(v, "SWITCH \u2192 " + n, curUp === v.toUpperCase());
+        }
+        html += "</select>";
+        return html;
+    }
+
+    function SyncParamField(ref) {
+        var actSel = (typeof ref === 'number' || (typeof ref === 'string' && /^\d+$/.test(ref)))
+            ? document.getElementById("inp_act_" + ref)
+            : ref;
+        if (!actSel) return;
+        var row = ClosestRow(actSel);
+        if (!row || !row.cells[4]) return;
+        var tbody = row.parentNode;
+        var seqName = (tbody && tbody.getAttribute) ? (tbody.getAttribute('data-seqname') || 'MAIN') : 'MAIN';
+        var paramTd = row.cells[4];
+        var curSel = paramTd.querySelector('.status-param');
+        var curVal = curSel ? curSel.value : '';
+        if (actSel.value === 'CHECK PIXEL') {
+            paramTd.innerHTML = BuildBranchSelect(curVal, seqName);
         } else {
-            chip.style.backgroundColor = "transparent";
+            if (curVal === 'WAIT' || curVal === 'SKIP' || /^SEQ:/i.test(curVal)) curVal = '-';
+            var esc = String(curVal).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+            paramTd.innerHTML = "<input type='text' class='input-inline status-param' value='" + esc + "'>";
         }
     }
 </script>
@@ -568,10 +601,12 @@ Sub AppCleanExit()
      If FSO.FileExists(PathStatusTmp) Then FSO.DeleteFile(PathStatusTmp)
  End Sub
 
-    Dim stepsCount, extraStepsCount, activeTargetTable
-    stepsCount = 0
-    extraStepsCount = 0
-    activeTargetTable = "MAIN"
+    Dim activeSeqName, gRowIdCounter, lastRowGid, arrSeqNames
+    activeSeqName = "MAIN"
+    gRowIdCounter = 0
+    lastRowGid = 0
+    ReDim arrSeqNames(0)
+    arrSeqNames(0) = "MAIN"
     
     Dim timerId, loopOpt
     Dim engineActive, isLaunchingState, isTerminatingState
@@ -612,20 +647,313 @@ Sub AppCleanExit()
         window.resizeTo 1250, 920
         On Error Resume Next
         Set objExcelEngine = CreateObject("Excel.Application")
+        window.activeSeqName = "MAIN"
+        window.activeSeqTbodyId = "seqTbody_MAIN"
+        gRowIdCounter = 0
+        ReDim arrSeqNames(0)
+        arrSeqNames(0) = "MAIN"
+        Call SyncSeqListToJS()
+        Call RebuildSeqTabs()
         document.body.focus()
         Randomize
     End Sub
 
-    Sub SetActiveTable(tableName)
-        activeTargetTable = tableName
-        window.activeTargetTable = tableName
-        If tableName = "MAIN" Then
-            document.getElementById("boxMainTable").className = "table-wrapper active-table-box"
-            document.getElementById("boxExtraTable").className = "table-wrapper"
-        Else
-            document.getElementById("boxMainTable").className = "table-wrapper"
-            document.getElementById("boxExtraTable").className = "table-wrapper active-table-box"
+    Function SeqKey(raw)
+        Dim c, i, out
+        If LCase(raw) = "main" Then
+            SeqKey = "MAIN"
+            Exit Function
         End If
+        out = "S"
+        For i = 1 To Len(raw)
+            c = Mid(raw, i, 1)
+            If (c >= "A" And c <= "Z") Or (c >= "a" And c <= "z") Or (c >= "0" And c <= "9") Then
+                out = out & c
+            Else
+                out = out & "_"
+            End If
+        Next
+        SeqKey = out
+    End Function
+
+    Function SeqExists(seqName)
+        Dim i
+        SeqExists = False
+        For i = 0 To UBound(arrSeqNames)
+            If LCase(arrSeqNames(i)) = LCase(seqName) Then SeqExists = True : Exit Function
+        Next
+    End Function
+
+    Sub AddSeqToList(seqName)
+        Dim n
+        n = UBound(arrSeqNames) + 1
+        ReDim Preserve arrSeqNames(n)
+        arrSeqNames(n) = seqName
+    End Sub
+
+    Sub RemoveFromSeqList(seqName)
+        Dim i, j, tmp()
+        For i = UBound(arrSeqNames) To 0 Step -1
+            If LCase(arrSeqNames(i)) = LCase(seqName) Then
+                For j = i To UBound(arrSeqNames) - 1
+                    arrSeqNames(j) = arrSeqNames(j + 1)
+                Next
+                ReDim Preserve arrSeqNames(UBound(arrSeqNames) - 1)
+                Exit For
+            End If
+        Next
+    End Sub
+
+    Sub SyncSeqListToJS()
+        Dim i, s
+        s = ""
+        For i = 0 To UBound(arrSeqNames)
+            If i > 0 Then s = s & "|"
+            s = s & arrSeqNames(i)
+        Next
+        window.SetSeqList s
+    End Sub
+
+    Sub SetActiveSequence(seqName)
+        On Error Resume Next
+        activeSeqName = seqName
+        window.activeSeqName = seqName
+        window.activeSeqTbodyId = "seqTbody_" & SeqKey(seqName)
+        Dim i, panelId, panelEl
+        For i = 0 To UBound(arrSeqNames)
+            panelId = "seqPanel_" & SeqKey(arrSeqNames(i))
+            Set panelEl = document.getElementById(panelId)
+            If Not panelEl Is Nothing Then
+                If LCase(arrSeqNames(i)) = LCase(seqName) Then
+                    panelEl.className = "table-wrapper seq-panel seq-panel-active active-table-box"
+                Else
+                    panelEl.className = "table-wrapper seq-panel"
+                End If
+            End If
+        Next
+        Call RebuildSeqTabs()
+        document.body.focus()
+    End Sub
+
+    Function SeqPanelHtml(seqName, key, includeTbody)
+        Dim h
+        h = "<div class='table-title-bar'>" & _
+            "<h3 class='table-title'><span class='table-ico'>🧩</span> <span id='seqTitle_" & key & "'>" & HtmlEncodeAttr(seqName) & "</span></h3>" & _
+            "<div>" & _
+                "<button class='btn-seq-mini' onclick=""vbscript:RenameSequence('" & seqName & "')"">✏️ Rename</button>" & _
+                "<button class='btn-seq-mini' onclick=""vbscript:DeleteSequence('" & seqName & "')"">🗑️ Delete</button>" & _
+            "</div>" & _
+        "</div>" & _
+        "<p class='sub-hint'>Tidak ikut loop utama — jalan sekali setiap kali dipicu oleh step <b>CHECK PIXEL → SWITCH</b> di sequence mana pun.</p>" & _
+        "<table class='guide-table'>" & _
+            "<thead><tr>" & _
+                "<th style='width: 18%;'>Step Name</th>" & _
+                "<th style='width: 13%;'>Action</th>" & _
+                "<th style='width: 16%;'>Spot (X, Y)</th>" & _
+                "<th style='width: 18%;'>Target Color</th>" & _
+                "<th style='width: 20%;'>Value / Param</th>" & _
+                "<th style='width: 10%;'>Delay (ms)</th>" & _
+                "<th style='width: 5%;'>Tools</th>" & _
+            "</tr></thead>"
+        If includeTbody Then h = h & "<tbody id='seqTbody_" & key & "' data-seqname='" & HtmlEncodeAttr(seqName) & "'></tbody>"
+        h = h & "</table>"
+        SeqPanelHtml = h
+    End Function
+
+    Function MakeSeqPanel(seqName)
+        Dim key, d, container
+        key = SeqKey(seqName)
+        Set d = document.createElement("div")
+        d.id = "seqPanel_" & key
+        d.className = "table-wrapper seq-panel"
+        d.innerHTML = SeqPanelHtml(seqName, key, True)
+        Set container = document.getElementById("seqContainer")
+        If Not container Is Nothing Then container.appendChild(d)
+        Set MakeSeqPanel = d
+    End Function
+
+    Sub RemoveSeqPanel(seqName)
+        Dim panelEl
+        On Error Resume Next
+        Set panelEl = document.getElementById("seqPanel_" & SeqKey(seqName))
+        If Not panelEl Is Nothing Then
+            Set panelEl = panelEl.parentNode
+            If Not panelEl Is Nothing Then panelEl.removeChild(document.getElementById("seqPanel_" & SeqKey(seqName)))
+        End If
+        On Error GoTo 0
+    End Sub
+
+    Sub RebuildSeqTabs()
+        Dim container, html, i
+        Set container = document.getElementById("seqTabsContainer")
+        If container Is Nothing Then Exit Sub
+        html = ""
+        For i = 0 To UBound(arrSeqNames)
+            If LCase(arrSeqNames(i)) = LCase(activeSeqName) Then
+                html = html & "<span class='seq-tab active' onclick=""vbscript:SetActiveSequence('" & arrSeqNames(i) & "')"">" & HtmlEncodeAttr(arrSeqNames(i)) & "</span>"
+            Else
+                html = html & "<span class='seq-tab" & IIf(LCase(arrSeqNames(i)) = "main", " main-tab", "") & "' onclick=""vbscript:SetActiveSequence('" & arrSeqNames(i) & "')"">" & HtmlEncodeAttr(arrSeqNames(i)) & "</span>"
+            End If
+        Next
+        container.innerHTML = html
+    End Sub
+
+    Sub AddNewSequence()
+        Dim newName, i
+        newName = InputBox("Nama sequence baru (huruf, angka, spasi, '-' dan '_'):", "Tambah Sequence", "Sequence " & (UBound(arrSeqNames) + 1))
+        If Trim(newName) = "" Then Exit Sub
+        newName = SanitizeSequenceName(newName)
+        If newName = "" Then MsgBox "Nama tidak valid.", 48, "Error" : Exit Sub
+        If LCase(newName) = "main" Then MsgBox "'MAIN' sudah dipakai sebagai sequence utama.", 48, "Error" : Exit Sub
+        For i = 0 To UBound(arrSeqNames)
+            If LCase(arrSeqNames(i)) = LCase(newName) Then MsgBox "Sequence '" & newName & "' sudah ada.", 48, "Error" : Exit Sub
+        Next
+        Call AddSeqToList(newName)
+        Call MakeSeqPanel(newName)
+        Call SyncSeqListToJS()
+        Call RefreshAllBranchSelects()
+        Call SetActiveSequence(newName)
+        document.body.focus()
+    End Sub
+
+    Sub RenameSequence(oldName)
+        On Error Resume Next
+        If LCase(oldName) = "main" Then MsgBox "MAIN tidak bisa di-rename.", 48, "Info" : Exit Sub
+        Dim newName, i, oldKey, newKey, tbody, oldPanel, container, newPanel, tableEl
+        newName = InputBox("Nama baru untuk sequence:", "Rename Sequence", oldName)
+        If Trim(newName) = "" Then Exit Sub
+        newName = SanitizeSequenceName(newName)
+        If newName = "" Then MsgBox "Nama tidak valid.", 48, "Error" : Exit Sub
+        If LCase(newName) = "main" Then MsgBox "'MAIN' sudah dipakai.", 48, "Error" : Exit Sub
+        For i = 0 To UBound(arrSeqNames)
+            If LCase(arrSeqNames(i)) = LCase(newName) Then MsgBox "Sequence '" & newName & "' sudah ada.", 48, "Error" : Exit Sub
+        Next
+
+        Call UpdateBranchRefs(oldName, newName)
+
+        oldKey = SeqKey(oldName)
+        newKey = SeqKey(newName)
+        Set tbody = document.getElementById("seqTbody_" & oldKey)
+        Set oldPanel = document.getElementById("seqPanel_" & oldKey)
+        If oldPanel Is Nothing Then Exit Sub
+
+        Set newPanel = document.createElement("div")
+        newPanel.id = "seqPanel_" & newKey
+        newPanel.className = "table-wrapper seq-panel"
+        newPanel.innerHTML = SeqPanelHtml(newName, newKey, False)
+        If Not tbody Is Nothing Then
+            Call tbody.setAttribute("id", "seqTbody_" & newKey)
+            Call tbody.setAttribute("data-seqname", newName)
+            Set tableEl = newPanel.getElementsByTagName("table")(0)
+            Call tableEl.appendChild(tbody)
+        End If
+        Set container = oldPanel.parentNode
+        Call container.insertBefore(newPanel, oldPanel)
+        Call container.removeChild(oldPanel)
+
+        For i = 0 To UBound(arrSeqNames)
+            If LCase(arrSeqNames(i)) = LCase(oldName) Then arrSeqNames(i) = newName : Exit For
+        Next
+        If LCase(activeSeqName) = LCase(oldName) Then activeSeqName = newName
+        window.activeSeqName = activeSeqName
+        window.activeSeqTbodyId = "seqTbody_" & SeqKey(activeSeqName)
+        Call SyncSeqListToJS()
+        Call RebuildSeqTabs()
+        Call RefreshAllBranchSelects()
+        Call SetActiveSequence(activeSeqName)
+        document.body.focus()
+    End Sub
+
+    Sub DeleteSequence(seqName)
+        On Error Resume Next
+        If LCase(seqName) = "main" Then MsgBox "MAIN tidak bisa dihapus.", 48, "Info" : Exit Sub
+        If MsgBox("Hapus sequence '" & seqName & "' beserta semua step-nya?", 36, "Confirm Delete") <> 6 Then Exit Sub
+        Call UpdateBranchRefs(seqName, "")
+        Call RemoveSeqPanel(seqName)
+        Call RemoveFromSeqList(seqName)
+        If LCase(activeSeqName) = LCase(seqName) Then activeSeqName = "MAIN"
+        Call SyncSeqListToJS()
+        Call RefreshAllBranchSelects()
+        Call SetActiveSequence(activeSeqName)
+    End Sub
+
+    Sub UpdateBranchRefs(fromName, toName)
+        On Error Resume Next
+        Dim i, tbody, rows, rowIdx, actVal, paramEl, val
+        For i = 0 To UBound(arrSeqNames)
+            Set tbody = document.getElementById("seqTbody_" & SeqKey(arrSeqNames(i)))
+            If Not tbody Is Nothing Then
+                For rowIdx = 0 To tbody.rows.length - 1
+                    actVal = tbody.rows(rowIdx).getElementsByClassName("status-act")(0).value
+                    If actVal = "CHECK PIXEL" Then
+                        Set paramEl = tbody.rows(rowIdx).getElementsByClassName("status-param")(0)
+                        val = paramEl.value
+                        If LCase(val) = "seq:" & LCase(fromName) Then
+                            If toName = "" Then paramEl.value = "WAIT" Else paramEl.value = "SEQ:" & toName
+                        End If
+                    End If
+                Next
+            End If
+        Next
+    End Sub
+
+    Sub RefreshAllBranchSelects()
+        On Error Resume Next
+        Dim i, tbody, rowIdx, actVal, idStr, gid
+        For i = 0 To UBound(arrSeqNames)
+            Set tbody = document.getElementById("seqTbody_" & SeqKey(arrSeqNames(i)))
+            If Not tbody Is Nothing Then
+                For rowIdx = 0 To tbody.rows.length - 1
+                    actVal = tbody.rows(rowIdx).getElementsByClassName("status-act")(0).value
+                    If actVal = "CHECK PIXEL" Then
+                        idStr = tbody.rows(rowIdx).getElementsByClassName("status-act")(0).id
+                        If idStr <> "" Then
+                            gid = Replace(idStr, "inp_act_", "")
+                            If IsNumeric(gid) Then window.SyncParamField CInt(gid)
+                        End If
+                    End If
+                Next
+            End If
+        Next
+    End Sub
+
+    Function HtmlEncodeAttr(s)
+        s = Replace(s, "&", "&amp;")
+        s = Replace(s, "<", "&lt;")
+        s = Replace(s, ">", "&gt;")
+        s = Replace(s, """", "&quot;")
+        HtmlEncodeAttr = s
+    End Function
+
+    Function EscVBSStr(s)
+        EscVBSStr = Replace(s, Chr(34), Chr(34) & Chr(34))
+    End Function
+
+    Sub SetLastRowName(nameVal)
+        On Error Resume Next
+        document.getElementById("inp_name_" & lastRowGid).value = nameVal
+    End Sub
+
+    Sub ResetAllSequences()
+        Dim i, mainTbody
+        For i = UBound(arrSeqNames) To 1 Step -1
+            Call RemoveSeqPanel(arrSeqNames(i))
+        Next
+        ReDim arrSeqNames(0)
+        arrSeqNames(0) = "MAIN"
+        Set mainTbody = document.getElementById("seqTbody_MAIN")
+        mainTbody.innerHTML = ""
+        gRowIdCounter = 0
+        Call SyncSeqListToJS()
+        Call RebuildSeqTabs()
+        Call SetActiveSequence("MAIN")
+    End Sub
+
+    Sub EnsureSequence(seqName)
+        If SeqExists(seqName) Then Exit Sub
+        If LCase(seqName) = "main" Then seqName = "MAIN"
+        Call AddSeqToList(seqName)
+        Call MakeSeqPanel(seqName)
     End Sub
 
     Sub SwitchTab(tabName)
@@ -641,19 +969,6 @@ Sub AppCleanExit()
             document.getElementById("tabLauncher").className = "tab-content active"
             document.getElementById("btnTabLaunch").className = "tab-btn active"
             timerId = window.setInterval("vbscript:ReadStatusLog()", 400)
-        End If
-    End Sub
-
-    Sub ToggleExtraSeqUI()
-        Dim chk
-        Set chk = document.getElementById("chkExtraSeq")
-        If chk.checked Then
-            document.getElementById("extraSeqBox").className = "extra-seq-container active"
-            Call SetActiveTable("EXTRA")
-            If extraStepsCount = 0 Then Call AddActionRowRouter("CLICK", "-", "-", "STATIC WAIT", "-", 600)
-        Else
-            document.getElementById("extraSeqBox").className = "extra-seq-container"
-            Call SetActiveTable("MAIN")
         End If
     End Sub
 
@@ -719,10 +1034,13 @@ Sub AppCleanExit()
                     Call AddActionRowRouter("SCROLL DOWN", "-", "-", "STATIC WAIT", "1", 300)
                 Case 79 ' Shift + O (Screenshot Full Screen)
                     window.event.returnValue = False
-                    Call AddActionRowRouter("SCREENSHOT", "-", "-", "STATIC WAIT", "screenshot_" & stepsCount + extraStepsCount + 1 & ".png", 900)
+                    Call AddActionRowRouter("SCREENSHOT", "-", "-", "STATIC WAIT", "screenshot_" & (gRowIdCounter + 1) & ".png", 900)
                 Case 73 ' Shift + I (Screenshot Region via overlay drag)
                     window.event.returnValue = False
                     Call TriggerRegionCapture()
+                Case 88 ' Shift + X (Check Pixel / branch trigger)
+                    window.event.returnValue = False
+                    Call AddActionRowRouter("CHECK PIXEL", realX, realY, realColor, "WAIT", 600)
                 Case 69 ' Shift + E (Edit Baris Terpilih Point & Shoot)
                     window.event.returnValue = False
                     If Not UpdateSelectedRowCoordinatesAndColor(realX, realY, realColor) Then
@@ -817,15 +1135,13 @@ Sub AppCleanExit()
         If CLng(x1) = -1 Then Exit Sub ' user cancelled
         Dim b1, b2, b3, b4
         b1 = CInt(x1) : b2 = CInt(y1) : b3 = CInt(x2 - x1) : b4 = CInt(y2 - y1)
-        Call AddActionRowRouter("SCREENSHOT REGION", b1, b2, "STATIC WAIT", "region_" & stepsCount + extraStepsCount + 1 & ".png," & b3 & "x" & b4, 900)
+        Call AddActionRowRouter("SCREENSHOT REGION", b1, b2, "STATIC WAIT", "region_" & (gRowIdCounter + 1) & ".png," & b3 & "x" & b4, 900)
     End Sub
 
     Sub SelectShortcut(valKey, defaultName)
-        If valKey <> "" Then Call AddActionRowRouter("SHORTCUT", "-", "-", "STATIC WAIT", valKey, 600)
-        If activeTargetTable = "MAIN" Then
-            document.getElementById("inp_name_" & stepsCount).value = "Shortcut: " & defaultName
-        Else
-            document.getElementById("ext_inp_name_" & extraStepsCount).value = "Shortcut: " & defaultName
+        If valKey <> "" Then
+            Call AddActionRowRouter("SHORTCUT", "-", "-", "STATIC WAIT", valKey, 600)
+            Call SetLastRowName("Shortcut: " & defaultName)
         End If
         Call CloseShortcutModal()
     End Sub
@@ -904,11 +1220,7 @@ Sub AppCleanExit()
         sendKeysCode = sendKeysCode & selectedBaseKey
         
         Call AddActionRowRouter("SHORTCUT", "-", "-", "STATIC WAIT", sendKeysCode, 600)
-        If activeTargetTable = "MAIN" Then
-            document.getElementById("inp_name_" & stepsCount).value = "Key: " & stepName
-        Else
-            document.getElementById("ext_inp_name_" & extraStepsCount).value = "Key: " & stepName
-        End If
+        Call SetLastRowName("Key: " & stepName)
         Call CloseOSKModal()
         Call CloseShortcutModal()
     End Sub
@@ -931,11 +1243,7 @@ Sub AppCleanExit()
         End If
         If finalProc <> "" Then
             Call AddActionRowRouter("SWITCH_APP", "-", "-", "STATIC WAIT", finalProc, 800)
-            If activeTargetTable = "MAIN" Then
-                document.getElementById("inp_name_" & stepsCount).value = "Switch: " & displayTitle
-            Else
-                document.getElementById("ext_inp_name_" & extraStepsCount).value = "Switch: " & displayTitle
-            End If
+            Call SetLastRowName("Switch: " & displayTitle)
         End If
         Call CloseProgramModal()
     End Sub
@@ -951,29 +1259,30 @@ Sub AppCleanExit()
     End Sub
 
     Sub AddActionRowRouter(actionType, mouseX, mouseY, colorVal, paramVal, delayMs)
-        If activeTargetTable = "MAIN" Then
-            Call AddMainActionRow(actionType, mouseX, mouseY, colorVal, paramVal, delayMs)
-        Else
-            Call AddExtraActionRow(actionType, mouseX, mouseY, colorVal, paramVal, delayMs)
-        End If
+        Call AddActionRow(activeSeqName, actionType, mouseX, mouseY, colorVal, paramVal, delayMs)
     End Sub
 
-    Sub AddMainActionRow(actionType, mouseX, mouseY, colorVal, paramVal, delayMs)
-        stepsCount = stepsCount + 1
-        Dim tableBody, row, bgChip
-        Set tableBody = document.getElementById("tableBody")
-        Set row = tableBody.insertRow(-1)
-        row.id = "row_" & stepsCount
+    Sub AddActionRow(seqName, actionType, mouseX, mouseY, colorVal, paramVal, delayMs)
+        gRowIdCounter = gRowIdCounter + 1
+        lastRowGid = gRowIdCounter
+        Dim gid, key, tbody, row, bgChip
+        gid = gRowIdCounter
+        key = SeqKey(seqName)
+        Set tbody = document.getElementById("seqTbody_" & key)
+        If tbody Is Nothing Then Exit Sub
+        Set row = tbody.insertRow(-1)
+        row.id = "row_" & gid
         
         bgChip = "transparent"
         If Left(colorVal, 1) = "#" And Len(colorVal) = 7 Then bgChip = colorVal
 
-        row.insertCell(0).innerHTML = "<input type='text' class='input-inline status-name' id='inp_name_" & stepsCount & "' value='Langkah " & stepsCount & "'>"
-        row.insertCell(1).innerHTML = "<select class='select-inline status-act' id='inp_act_" & stepsCount & "'>" & _
+        row.insertCell(0).innerHTML = "<input type='text' class='input-inline status-name' id='inp_name_" & gid & "' value='Langkah " & gid & "'>"
+        row.insertCell(1).innerHTML = "<select class='select-inline status-act' id='inp_act_" & gid & "' onchange='SyncParamField(this)'>" & _
             "<option value='CLICK'" & IIf(actionType="CLICK"," selected","") & ">CLICK</option>" & _
             "<option value='DOUBLE CLICK'" & IIf(actionType="DOUBLE CLICK"," selected","") & ">DOUBLE CLICK</option>" & _
             "<option value='RIGHT CLICK'" & IIf(actionType="RIGHT CLICK"," selected","") & ">RIGHT CLICK</option>" & _
             "<option value='MOVE CURSOR ONLY'" & IIf(actionType="MOVE CURSOR ONLY"," selected","") & ">MOVE CURSOR ONLY</option>" & _
+            "<option value='CHECK PIXEL'" & IIf(actionType="CHECK PIXEL"," selected","") & ">CHECK PIXEL</option>" & _
             "<option value='SCROLL UP'" & IIf(actionType="SCROLL UP"," selected","") & ">SCROLL UP</option>" & _
             "<option value='SCROLL DOWN'" & IIf(actionType="SCROLL DOWN"," selected","") & ">SCROLL DOWN</option>" & _
             "<option value='WRITE'" & IIf(actionType="WRITE"," selected","") & ">WRITE</option>" & _
@@ -982,49 +1291,16 @@ Sub AppCleanExit()
             "<option value='SCREENSHOT'" & IIf(actionType="SCREENSHOT"," selected","") & ">SCREENSHOT</option>" & _
             "<option value='SCREENSHOT REGION'" & IIf(actionType="SCREENSHOT REGION"," selected","") & ">SCREENSHOT REGION</option>" & _
             "</select>"
-        row.insertCell(2).innerHTML = "<input type='text' class='input-inline status-coord' id='inp_coord_" & stepsCount & "' value='" & mouseX & ", " & mouseY & "'>"
-        row.insertCell(3).innerHTML = "<span class='color-preview-chip' id='chip_" & stepsCount & "' style='background-color:" & bgChip & ";'></span>" & _
-            "<input type='text' class='input-inline status-color' id='inp_color_" & stepsCount & "' style='width:75%;' value='" & colorVal & "' onkeyup='UpdateColorChip(""inp_color_" & stepsCount & """, ""chip_" & stepsCount & """)'>"
-        row.insertCell(4).innerHTML = "<input type='text' class='input-inline status-param' id='inp_param_" & stepsCount & "' value='" & paramVal & "'>"
-        row.insertCell(5).innerHTML = "<input type='text' class='input-inline status-delay' id='inp_delay_" & stepsCount & "' value='" & delayMs & "'>"
+        row.insertCell(2).innerHTML = "<input type='text' class='input-inline status-coord' id='inp_coord_" & gid & "' value='" & HtmlEncodeAttr(mouseX & ", " & mouseY) & "'>"
+        row.insertCell(3).innerHTML = "<span class='color-preview-chip' id='chip_" & gid & "' style='background-color:" & bgChip & ";'></span>" & _
+            "<input type='text' class='input-inline status-color' id='inp_color_" & gid & "' style='width:75%;' value='" & HtmlEncodeAttr(colorVal) & "' onkeyup='UpdateColorChip(this)'>"
+        row.insertCell(4).innerHTML = "<input type='text' class='input-inline status-param' id='inp_param_" & gid & "' value='" & HtmlEncodeAttr(paramVal) & "'>"
+        row.insertCell(5).innerHTML = "<input type='text' class='input-inline status-delay' id='inp_delay_" & gid & "' value='" & HtmlEncodeAttr(delayMs) & "'>"
         row.insertCell(6).innerHTML = "<button class='btn-dup' style='padding:4px 8px; font-size:11px;' onclick='DuplicateRowBtn(this)'>📋</button> <button class='btn-danger' style='padding:4px 8px; font-size:11px;' onclick='DeleteRowBtn(this)'>❌</button>"
         
         Call InitDragAndDropListeners(row)
+        Call window.SyncParamField(gid)
         document.body.focus()
-    End Sub
-
-    Sub AddExtraActionRow(actionType, mouseX, mouseY, colorVal, paramVal, delayMs)
-        extraStepsCount = extraStepsCount + 1
-        Dim tableBody, row, bgChip
-        Set tableBody = document.getElementById("extraTableBody")
-        Set row = tableBody.insertRow(-1)
-        row.id = "ext_row_" & extraStepsCount
-        
-        bgChip = "transparent"
-        If Left(colorVal, 1) = "#" And Len(colorVal) = 7 Then bgChip = colorVal
-
-        row.insertCell(0).innerHTML = "<input type='text' class='input-inline status-name' id='ext_inp_name_" & extraStepsCount & "' value='Extra Step " & extraStepsCount & "'>"
-        row.insertCell(1).innerHTML = "<select class='select-inline status-act' id='ext_inp_act_" & extraStepsCount & "'>" & _
-            "<option value='CLICK'" & IIf(actionType="CLICK"," selected","") & ">CLICK</option>" & _
-            "<option value='DOUBLE CLICK'" & IIf(actionType="DOUBLE CLICK"," selected","") & ">DOUBLE CLICK</option>" & _
-            "<option value='RIGHT CLICK'" & IIf(actionType="RIGHT CLICK"," selected","") & ">RIGHT CLICK</option>" & _
-            "<option value='MOVE CURSOR ONLY'" & IIf(actionType="MOVE CURSOR ONLY"," selected","") & ">MOVE CURSOR ONLY</option>" & _
-            "<option value='SCROLL UP'" & IIf(actionType="SCROLL UP"," selected","") & ">SCROLL UP</option>" & _
-            "<option value='SCROLL DOWN'" & IIf(actionType="SCROLL DOWN"," selected","") & ">SCROLL DOWN</option>" & _
-            "<option value='WRITE'" & IIf(actionType="WRITE"," selected","") & ">WRITE</option>" & _
-            "<option value='SHORTCUT'" & IIf(actionType="SHORTCUT"," selected","") & ">SHORTCUT</option>" & _
-            "<option value='SWITCH_APP'" & IIf(actionType="SWITCH_APP"," selected","") & ">SWITCH_APP</option>" & _
-            "<option value='SCREENSHOT'" & IIf(actionType="SCREENSHOT"," selected","") & ">SCREENSHOT</option>" & _
-            "<option value='SCREENSHOT REGION'" & IIf(actionType="SCREENSHOT REGION"," selected","") & ">SCREENSHOT REGION</option>" & _
-            "</select>"
-        row.insertCell(2).innerHTML = "<input type='text' class='input-inline status-coord' id='ext_inp_coord_" & extraStepsCount & "' value='" & mouseX & ", " & mouseY & "'>"
-        row.insertCell(3).innerHTML = "<span class='color-preview-chip' id='ext_chip_" & extraStepsCount & "' style='background-color:" & bgChip & ";'></span>" & _
-            "<input type='text' class='input-inline status-color' id='ext_inp_color_" & extraStepsCount & "' style='width:75%;' value='" & colorVal & "' onkeyup='UpdateColorChip(""ext_inp_color_" & extraStepsCount & """, ""ext_chip_" & extraStepsCount & """)'>"
-        row.insertCell(4).innerHTML = "<input type='text' class='input-inline status-param' id='ext_inp_param_" & extraStepsCount & "' value='" & paramVal & "'>"
-        row.insertCell(5).innerHTML = "<input type='text' class='input-inline status-delay' id='ext_inp_delay_" & extraStepsCount & "' value='" & delayMs & "'>"
-        row.insertCell(6).innerHTML = "<button class='btn-dup' style='padding:4px 8px; font-size:11px;' onclick='DuplicateRowBtn(this)'>📋</button> <button class='btn-danger' style='padding:4px 8px; font-size:11px;' onclick='DeleteRowBtn(this)'>❌</button>"
-        
-        Call InitDragAndDropListeners(row)
     End Sub
 
     Function IIf(rel, trueVal, falseVal)
@@ -1053,17 +1329,14 @@ Sub AppCleanExit()
 
     Sub SaveSequenceMetadata()
         Dim seqName, seqFolder, seqPath, FileMeta
-        Dim mainTbody, mainRows, extTbody, extRows
-        Dim hasMain, hasExtra, rowIdx, curRow
+        Dim i, tbody, rows, rowIdx, curRow, totalRows
 
-        Set mainTbody = document.getElementById("tableBody")
-        Set mainRows = mainTbody.rows
-        Set extTbody = document.getElementById("extraTableBody")
-        Set extRows = extTbody.rows
-        hasMain = (mainRows.length > 0)
-        hasExtra = (document.getElementById("chkExtraSeq").checked And extRows.length > 0)
-
-        If Not hasMain And Not hasExtra Then MsgBox "Both tables are empty. Nothing to save.", 48, "Warning" : Exit Sub
+        totalRows = 0
+        For i = 0 To UBound(arrSeqNames)
+            Set tbody = document.getElementById("seqTbody_" & SeqKey(arrSeqNames(i)))
+            If Not tbody Is Nothing Then totalRows = totalRows + tbody.rows.length
+        Next
+        If totalRows = 0 Then MsgBox "Semua sequence kosong. Nothing to save.", 48, "Warning" : Exit Sub
 
         seqName = InputBox("Enter a name for this sequence:" & vbCrLf & vbCrLf & _
                            "Letters, numbers, spaces, hyphens, underscores allowed." & vbCrLf & _
@@ -1085,34 +1358,25 @@ Sub AppCleanExit()
 
         Set FileMeta = FSO.CreateTextFile(seqPath, True)
 
-        If hasMain Then
-            FileMeta.WriteLine "[MAIN]"
-            For rowIdx = 0 To mainRows.length - 1
-                Set curRow = mainRows(rowIdx)
-                FileMeta.WriteLine curRow.getElementsByClassName("status-name")(0).value & "||" & _
-                                   curRow.getElementsByClassName("status-act")(0).value & "||" & _
-                                   curRow.getElementsByClassName("status-coord")(0).value & "||" & _
-                                   curRow.getElementsByClassName("status-color")(0).value & "||" & _
-                                   curRow.getElementsByClassName("status-param")(0).value & "||" & _
-                                   curRow.getElementsByClassName("status-delay")(0).value
-            Next
-        End If
-
-        If hasExtra Then
-            FileMeta.WriteLine "[EXTRA]"
-            For rowIdx = 0 To extRows.length - 1
-                Set curRow = extRows(rowIdx)
-                FileMeta.WriteLine curRow.getElementsByClassName("status-name")(0).value & "||" & _
-                                   curRow.getElementsByClassName("status-act")(0).value & "||" & _
-                                   curRow.getElementsByClassName("status-coord")(0).value & "||" & _
-                                   curRow.getElementsByClassName("status-color")(0).value & "||" & _
-                                   curRow.getElementsByClassName("status-param")(0).value & "||" & _
-                                   curRow.getElementsByClassName("status-delay")(0).value
-            Next
-        End If
+        For i = 0 To UBound(arrSeqNames)
+            Set tbody = document.getElementById("seqTbody_" & SeqKey(arrSeqNames(i)))
+            If Not tbody Is Nothing And tbody.rows.length > 0 Then
+                FileMeta.WriteLine "[SEQUENCE:" & arrSeqNames(i) & "]"
+                For rowIdx = 0 To tbody.rows.length - 1
+                    Set curRow = tbody.rows(rowIdx)
+                    FileMeta.WriteLine curRow.getElementsByClassName("status-name")(0).value & "||" & _
+                                       curRow.getElementsByClassName("status-act")(0).value & "||" & _
+                                       curRow.getElementsByClassName("status-coord")(0).value & "||" & _
+                                       curRow.getElementsByClassName("status-color")(0).value & "||" & _
+                                       curRow.getElementsByClassName("status-param")(0).value & "||" & _
+                                       curRow.getElementsByClassName("status-delay")(0).value & "||" & _
+                                       curRow.getElementsByClassName("status-param")(0).value
+                Next
+            End If
+        Next
 
         FileMeta.Close
-        MsgBox "Sequence '" & seqName & "' saved successfully!", 64, "Save Successful"
+        MsgBox "Multi-sequence '" & seqName & "' saved successfully!", 64, "Save Successful"
     End Sub
 
     Function SanitizeSequenceName(raw)
@@ -1182,15 +1446,12 @@ Sub AppCleanExit()
     End Sub
 
     Sub PickSequence(filename)
-        Dim seqFolder, seqPath, objFile, lineStr, parts, section
+        Dim seqPath, objFile, lineStr, parts, section, partCount, branchArg, pX, pY, rowEl
         document.getElementById("sequencePickerModal").style.display = "none"
 
         seqPath = wshShell.CurrentDirectory & "\sequences\" & filename
 
-        document.getElementById("tableBody").innerHTML = ""
-        stepsCount = 0
-        document.getElementById("extraTableBody").innerHTML = ""
-        extraStepsCount = 0
+        Call ResetAllSequences()
 
         If Not FSO.FileExists(seqPath) Then MsgBox "File not found: " & filename, 48, "Error" : Exit Sub
 
@@ -1199,39 +1460,61 @@ Sub AppCleanExit()
         Do Until objFile.AtEndOfStream
             lineStr = Trim(objFile.ReadLine)
             If lineStr <> "" Then
-                If lineStr = "[MAIN]" Then
-                    section = "[MAIN]"
+                If InStr(lineStr, "[SEQUENCE:") = 1 And Right(lineStr, 1) = "]" Then
+                    section = Trim(Mid(lineStr, 11, Len(lineStr) - 11))
+                    If section <> "" Then
+                        If LCase(section) = "main" Then section = "MAIN"
+                        Call EnsureSequence(section)
+                    End If
+                ElseIf lineStr = "[MAIN]" Then
+                    section = "MAIN"
                 ElseIf lineStr = "[EXTRA]" Then
-                    section = "[EXTRA]"
+                    section = "Extra"
+                    Call EnsureSequence(section)
                 ElseIf section <> "" Then
                     parts = Split(lineStr, "||")
-                    If UBound(parts) = 5 Then
-                        Dim pX, pY
+                    partCount = UBound(parts)
+                    If partCount >= 5 Then
                         pX = "-" : pY = "-"
                         If InStr(parts(2), ",") > 0 Then pX = Trim(Split(parts(2), ",")(0)) : pY = Trim(Split(parts(2), ",")(1))
-
-                        If section = "[MAIN]" Then
-                            Call AddMainActionRow(parts(1), pX, pY, parts(3), parts(4), parts(5))
-                            document.getElementById("inp_name_" & stepsCount).value = parts(0)
-                        ElseIf section = "[EXTRA]" Then
-                            Call AddExtraActionRow(parts(1), pX, pY, parts(3), parts(4), parts(5))
-                            document.getElementById("ext_inp_name_" & extraStepsCount).value = parts(0)
-                        End If
+                        branchArg = Trim(parts(4))
+                        If partCount >= 6 Then branchArg = Trim(parts(6))
+                        If branchArg = "" Then branchArg = "-"
+                        Call AddActionRow(section, parts(1), pX, pY, parts(3), parts(4), parts(5))
+                        Set rowEl = document.getElementById("row_" & lastRowGid)
+                        If Not rowEl Is Nothing Then rowEl.setAttribute "data-branch", branchArg
+                        Call SetLastRowName(parts(0))
                     End If
                 End If
             End If
         Loop
         objFile.Close
 
-        If extraStepsCount > 0 Then
-            document.getElementById("chkExtraSeq").checked = True
-            document.getElementById("extraSeqBox").className = "extra-seq-container active"
-        Else
-            document.getElementById("chkExtraSeq").checked = False
-            document.getElementById("extraSeqBox").className = "extra-seq-container"
-        End If
+        Call SyncSeqListToJS()
+        Call RebuildSeqTabs()
+        Call RefreshAllBranchSelects()
+        Call ApplyStoredBranchValues()
+        Call SetActiveSequence(section)
 
         MsgBox "Sequence loaded from '" & Left(filename, Len(filename) - 4) & "'!", 64, "Load Successful"
+    End Sub
+
+    Sub ApplyStoredBranchValues()
+        On Error Resume Next
+        Dim i, tbody, rowIdx, rowEl, storedVal
+        For i = 0 To UBound(arrSeqNames)
+            Set tbody = document.getElementById("seqTbody_" & SeqKey(arrSeqNames(i)))
+            If Not tbody Is Nothing Then
+                For rowIdx = 0 To tbody.rows.length - 1
+                    Set rowEl = tbody.rows(rowIdx)
+                    storedVal = rowEl.getAttribute("data-branch")
+                    If storedVal <> "" Then
+                        rowEl.getElementsByClassName("status-param")(0).value = storedVal
+                    End If
+                Next
+            End If
+        Next
+        On Error GoTo 0
     End Sub
 
     Sub CloseSequencePicker()
@@ -1334,16 +1617,15 @@ Sub AppCleanExit()
     End Sub
 
 Sub GenerateVBSOnly()
-        Dim PathFile, FileVBS, loopInput, totalStepsActive, tbody, rows, rowIdx, mainShotIdx, qShot
+        Dim PathFile, FileVBS, loopInput, qShot
         qShot = Chr(34)
-        Dim extTbody, extRows, extRowIdx, extShotIdx
-        Set tbody = document.getElementById("tableBody")
-        Set rows = tbody.rows
-        totalStepsActive = rows.length
+        Dim seqIdx, seqTbody, rowIdx, curRow
+        Dim vName, vAct, vCoord, vColor, vParam, vDelay, mainShotIdx
 
-        ' KETENTUAN 1: BILA SEQUENCE KOSONG (BLANK), FLOW LANGSUNG TERMINATED
-        If totalStepsActive = 0 Then 
-            MsgBox "Sequence tabel kosong (blank)! Flow otomatis di-terminate.", 16, "Flow Terminated"
+        ' KETENTUAN 1: BILA SEQUENCE MAIN KOSONG (BLANK), FLOW LANGSUNG TERMINATED
+        Set seqTbody = document.getElementById("seqTbody_MAIN")
+        If seqTbody Is Nothing Or seqTbody.rows.length = 0 Then 
+            MsgBox "Sequence MAIN kosong (blank)! Flow otomatis di-terminate.", 16, "Flow Terminated"
             Exit Sub 
         End If
 
@@ -1359,9 +1641,9 @@ Sub GenerateVBSOnly()
         If Not FSO.FolderExists(shotDirAbs) Then FSO.CreateFolder shotDirAbs
         shotCounter = GetShotStartNumber(shotDirAbs, shotPrefix)
         mainShotSteps = 0
-        For stepIdx = 0 To rows.length - 1
+        For stepIdx = 0 To seqTbody.rows.length - 1
             Dim sActTmp
-            sActTmp = rows(stepIdx).getElementsByClassName("status-act")(0).value
+            sActTmp = seqTbody.rows(stepIdx).getElementsByClassName("status-act")(0).value
             If sActTmp = "SCREENSHOT" Or sActTmp = "SCREENSHOT REGION" Then mainShotSteps = mainShotSteps + 1
         Next
         If mainShotSteps = 0 Then mainShotSteps = 1
@@ -1372,8 +1654,9 @@ Sub GenerateVBSOnly()
         FileVBS.WriteLine "Dim shotFld"
         FileVBS.WriteLine "shotFld = """ & shotDirAbs & """"
 
-        FileVBS.WriteLine "' GENERATED ENGINE v1.7-pro Mouse Interrupt & Countdown Edition"
-        FileVBS.WriteLine "Dim shl, ax, fso, currentLoop, maxLoop, runForever, ts, lastPhysX, lastPhysY, capExe"
+        FileVBS.WriteLine "' GENERATED ENGINE v1.5.0 Multi-Sequence & CHECK PIXEL Edition"
+        FileVBS.WriteLine "Dim shl, ax, fso, currentLoop, maxLoop, runForever, ts, lastPhysX, lastPhysY, capExe, RunSeqShotIdx"
+        FileVBS.WriteLine "RunSeqShotIdx = 0"
         FileVBS.WriteLine "Set shl = CreateObject(""WScript.Shell"")"
         FileVBS.WriteLine "Set ax = CreateObject(""Excel.Application"")"
         FileVBS.WriteLine "Set fso = CreateObject(""Scripting.FileSystemObject"")"
@@ -1476,6 +1759,22 @@ Sub GenerateVBSOnly()
         FileVBS.WriteLine "   Loop"
         FileVBS.WriteLine "End Function"
 
+        ' CHECK PIXEL non-blocking pixel read
+        FileVBS.WriteLine "Function ReadPixelHex(targetX, targetY)"
+        FileVBS.WriteLine "   On Error Resume Next"
+        FileVBS.WriteLine "   Dim hDC, rgbVal, curR, curG, curB"
+        FileVBS.WriteLine "   ReadPixelHex = ""#000000"""
+        FileVBS.WriteLine "   hDC = ax.ExecuteExcel4Macro(""CALL(""""user32"""",""""GetDC"""",""""JJ"""",0)"")"
+        FileVBS.WriteLine "   rgbVal = ax.ExecuteExcel4Macro(""CALL(""""gdi32"""",""""GetPixel"""",""""JJJJ"""","" & hDC & "","" & targetX & "","" & targetY & "")"")"
+        FileVBS.WriteLine "   ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""ReleaseDC"""",""""JJJ"""",0,"" & hDC & "")"""
+        FileVBS.WriteLine "   If rgbVal >= 0 Then"
+        FileVBS.WriteLine "       curR = rgbVal Mod 256"
+        FileVBS.WriteLine "       curG = (rgbVal \ 256) Mod 256"
+        FileVBS.WriteLine "       curB = (rgbVal \ 65536) Mod 256"
+        FileVBS.WriteLine "       ReadPixelHex = ""#"" & Right(""0"" & Hex(curR), 2) & Right(""0"" & Hex(curG), 2) & Right(""0"" & Hex(curB), 2)"
+        FileVBS.WriteLine "   End If"
+        FileVBS.WriteLine "End Function"
+
         FileVBS.WriteLine "Sub AutoSwitchActiveWindow(targetTitle)"
         FileVBS.WriteLine "   Dim cleanTitle, wmi, processes, exeName, isRunning, i"
         FileVBS.WriteLine "   On Error Resume Next"
@@ -1514,172 +1813,129 @@ Sub GenerateVBSOnly()
         FileVBS.WriteLine "   WScript.Sleep 200"
         FileVBS.WriteLine "End Sub"
 
+        ' ============ GENERATE ONE SUB PER SEQUENCE ============
+        mainShotIdx = 0
+        For seqIdx = 0 To UBound(arrSeqNames)
+            Set seqTbody = document.getElementById("seqTbody_" & SeqKey(arrSeqNames(seqIdx)))
+            If Not seqTbody Is Nothing And seqTbody.rows.length > 0 Then
+                FileVBS.WriteLine "Sub RunSequence_" & SeqKey(arrSeqNames(seqIdx)) & "()"
+                For rowIdx = 0 To seqTbody.rows.length - 1
+                    Set curRow = seqTbody.rows(rowIdx)
+                    vName = curRow.getElementsByClassName("status-name")(0).value
+                    vAct = curRow.getElementsByClassName("status-act")(0).value
+                    vCoord = curRow.getElementsByClassName("status-coord")(0).value
+                    vColor = curRow.getElementsByClassName("status-color")(0).value
+                    vParam = curRow.getElementsByClassName("status-param")(0).value
+                    vDelay = curRow.getElementsByClassName("status-delay")(0).value
+
+                    FileVBS.WriteLine "    Call CheckPhysicalHold()"
+                    FileVBS.WriteLine "    Call LogStatus(" & (rowIdx + 1) & ", " & seqTbody.rows.length & ", """ & arrSeqNames(seqIdx) & " #" & (rowIdx + 1) & ": " & vName & " [" & vAct & "]"")"
+                    If vAct = "SWITCH_APP" Then
+                        FileVBS.WriteLine "    Call AutoSwitchActiveWindow(""" & vParam & """)"
+                    ElseIf vAct = "CLICK" Or vAct = "DOUBLE CLICK" Or vAct = "RIGHT CLICK" Or vAct = "MOVE CURSOR ONLY" Then
+                        If InStr(vCoord, ",") > 0 Then
+                            Dim cParts, x, y
+                            cParts = Split(vCoord, ","): x = Trim(cParts(0)): y = Trim(cParts(1))
+                            If IsNumeric(x) And IsNumeric(y) Then
+                                FileVBS.WriteLine "    Call WaitDynamicHoldColor(" & x & ", " & y & ", """ & vColor & """)"
+                                FileVBS.WriteLine "    ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""SetCursorPos"""",""""JJJ""""," & x & "," & y & ")"""
+                                If vAct = "CLICK" Then
+                                    FileVBS.WriteLine "    ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""mouse_event"""",""""JJJJJJ"""",2,0,0,0,0)"""
+                                    FileVBS.WriteLine "    ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""mouse_event"""",""""JJJJJJ"""",4,0,0,0,0)"""
+                                ElseIf vAct = "DOUBLE CLICK" Then
+                                    FileVBS.WriteLine "    ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""mouse_event"""",""""JJJJJJ"""",2,0,0,0,0)"""
+                                    FileVBS.WriteLine "    ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""mouse_event"""",""""JJJJJJ"""",4,0,0,0,0)"""
+                                    FileVBS.WriteLine "    WScript.Sleep 100"
+                                    FileVBS.WriteLine "    ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""mouse_event"""",""""JJJJJJ"""",2,0,0,0,0)"""
+                                    FileVBS.WriteLine "    ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""mouse_event"""",""""JJJJJJ"""",4,0,0,0,0)"""
+                                ElseIf vAct = "RIGHT CLICK" Then
+                                    FileVBS.WriteLine "    ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""mouse_event"""",""""JJJJJJ"""",8,0,0,0,0)"""
+                                    FileVBS.WriteLine "    ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""mouse_event"""",""""JJJJJJ"""",16,0,0,0,0)"""
+                                End If
+                                FileVBS.WriteLine "    Call UpdateLastCursorPos()"
+                            End If
+                        End If
+                    ElseIf vAct = "CHECK PIXEL" Then
+                        If InStr(vCoord, ",") > 0 Then
+                            Dim ckParts, ckX, ckY
+                            ckParts = Split(vCoord, ","): ckX = Trim(ckParts(0)): ckY = Trim(ckParts(1))
+                            If IsNumeric(ckX) And IsNumeric(ckY) Then
+                                If LCase(vParam) = "wait" Or Trim(vParam) = "-" Or Trim(vParam) = "" Then
+                                    FileVBS.WriteLine "    Call WaitDynamicHoldColor(" & ckX & ", " & ckY & ", """ & vColor & """)"
+                                ElseIf LCase(vParam) = "skip" Then
+                                    FileVBS.WriteLine "    If UCase(ReadPixelHex(" & ckX & ", " & ckY & ")) = UCase(""" & vColor & """) Then Exit Sub"
+                                ElseIf LCase(Left(vParam, 4)) = "seq:" Then
+                                    Dim branchName, branchKey
+                                    branchName = Trim(Mid(vParam, 5))
+                                    If SeqExists(branchName) Then
+                                        branchKey = SeqKey(branchName)
+                                        FileVBS.WriteLine "    If UCase(ReadPixelHex(" & ckX & ", " & ckY & ")) = UCase(""" & vColor & """) Then Call RunSequence_" & branchKey
+                                    Else
+                                        MsgBox "CHECK PIXEL '" & vName & "' (di sequence """ & arrSeqNames(seqIdx) & """) menunjuk ke sequence yang tidak ada: """ & branchName & """.", 48, "Warning"
+                                    End If
+                                End If
+                            End If
+                        End If
+                    ElseIf vAct = "SCROLL UP" Then
+                        Dim scrollNotchesUp
+                        scrollNotchesUp = 1
+                        If IsNumeric(vParam) And CInt(vParam) > 0 Then scrollNotchesUp = CInt(vParam)
+                        FileVBS.WriteLine "    ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""mouse_event"""",""""JJJJJJ"""",2048,0,0," & (scrollNotchesUp * 120) & ",0)"""
+                    ElseIf vAct = "SCROLL DOWN" Then
+                        Dim scrollNotchesDown
+                        scrollNotchesDown = 1
+                        If IsNumeric(vParam) And CInt(vParam) > 0 Then scrollNotchesDown = CInt(vParam)
+                        FileVBS.WriteLine "    ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""mouse_event"""",""""JJJJJJ"""",2048,0,0," & (scrollNotchesDown * -120) & ",0)"""
+                    ElseIf vAct = "SCREENSHOT" Then
+                        If arrSeqNames(seqIdx) = "MAIN" Then
+                            FileVBS.WriteLine "    Call RunScreenshot(shotFld & " & qShot & "\" & qShot & " & " & qShot & shotPrefix & "_" & qShot & " & (shotCounter + (currentLoop - 1) * " & mainShotSteps & " + " & mainShotIdx & ") & " & qShot & ".png" & qShot & ", -1, -1, -1, -1)"
+                            mainShotIdx = mainShotIdx + 1
+                        Else
+                            FileVBS.WriteLine "    Call RunScreenshot(shotFld & " & qShot & "\" & qShot & " & " & qShot & shotPrefix & "_" & qShot & " & (shotCounter + maxLoop * " & mainShotSteps & " + RunSeqShotIdx) & " & qShot & ".png" & qShot & ", -1, -1, -1, -1)"
+                            FileVBS.WriteLine "    RunSeqShotIdx = RunSeqShotIdx + 1"
+                        End If
+                    ElseIf vAct = "SCREENSHOT REGION" Then
+                        Dim sRParts, sFileName, sWH, sWxH, sRCoord, sRx, sRy, sRw, sRh
+                        sRParts = Split(vParam, ",")
+                        sFileName = Trim(sRParts(0))
+                        sWH = "-"
+                        If UBound(sRParts) >= 1 Then sWH = Trim(sRParts(1))
+                        sRx = "-" : sRy = "-"
+                        If InStr(vCoord, ",") > 0 Then
+                            sRCoord = Split(vCoord, ",")
+                            sRx = Trim(sRCoord(0)) : sRy = Trim(sRCoord(1))
+                        End If
+                        sRw = "-" : sRh = "-"
+                        If InStr(sWH, "x") > 0 Then
+                            sWxH = Split(sWH, "x")
+                            sRw = Trim(sWxH(0)) : sRh = Trim(sWxH(1))
+                        End If
+                        If IsNumeric(sRx) And IsNumeric(sRy) And IsNumeric(sRw) And IsNumeric(sRh) Then
+                            If arrSeqNames(seqIdx) = "MAIN" Then
+                                FileVBS.WriteLine "    Call RunScreenshot(shotFld & " & qShot & "\" & qShot & " & " & qShot & shotPrefix & "_" & qShot & " & (shotCounter + (currentLoop - 1) * " & mainShotSteps & " + " & mainShotIdx & ") & " & qShot & ".png" & qShot & ", " & sRx & ", " & sRy & ", " & sRw & ", " & sRh & ")"
+                                mainShotIdx = mainShotIdx + 1
+                            Else
+                                FileVBS.WriteLine "    Call RunScreenshot(shotFld & " & qShot & "\" & qShot & " & " & qShot & shotPrefix & "_" & qShot & " & (shotCounter + maxLoop * " & mainShotSteps & " + RunSeqShotIdx) & " & qShot & ".png" & qShot & ", " & sRx & ", " & sRy & ", " & sRw & ", " & sRh & ")"
+                                FileVBS.WriteLine "    RunSeqShotIdx = RunSeqShotIdx + 1"
+                            End If
+                        End If
+                    ElseIf vAct = "WRITE" Or vAct = "SHORTCUT" Then
+                        FileVBS.WriteLine "    shl.SendKeys """ & vParam & """"
+                    End If
+                    FileVBS.WriteLine "    WScript.Sleep " & vDelay
+                Next
+                FileVBS.WriteLine "End Sub"
+            End If
+        Next
+
         ' MAIN LOOP SCRIPT
         FileVBS.WriteLine "currentLoop = 0"
         FileVBS.WriteLine "Do While (currentLoop < maxLoop) Or runForever"
         FileVBS.WriteLine "    currentLoop = currentLoop + 1"
-        
-        mainShotIdx = 0
-        For rowIdx = 0 To rows.length - 1
-            Dim curRow, vName, vAct, vCoord, vColor, vParam, vDelay
-            Set curRow = rows(rowIdx)
-            vName = curRow.getElementsByClassName("status-name")(0).value
-            vAct = curRow.getElementsByClassName("status-act")(0).value
-            vCoord = curRow.getElementsByClassName("status-coord")(0).value
-            vColor = curRow.getElementsByClassName("status-color")(0).value
-            vParam = curRow.getElementsByClassName("status-param")(0).value
-            vDelay = curRow.getElementsByClassName("status-delay")(0).value
-            
-            FileVBS.WriteLine "    Call CheckPhysicalHold()"
-            FileVBS.WriteLine "    Call LogStatus(" & (rowIdx + 1) & ", " & totalStepsActive & ", ""Step #" & (rowIdx + 1) & ": " & vName & " [" & vAct & "]"")"
-            If vAct = "SWITCH_APP" Then
-                FileVBS.WriteLine "    Call AutoSwitchActiveWindow(""" & vParam & """)"
-            ElseIf vAct = "CLICK" Or vAct = "DOUBLE CLICK" Or vAct = "RIGHT CLICK" Or vAct = "MOVE CURSOR ONLY" Then
-                If InStr(vCoord, ",") > 0 Then
-                    Dim cParts, x, y
-                    cParts = Split(vCoord, ","): x = Trim(cParts(0)): y = Trim(cParts(1))
-                    If IsNumeric(x) And IsNumeric(y) Then
-                        FileVBS.WriteLine "    Call WaitDynamicHoldColor(" & x & ", " & y & ", """ & vColor & """)"
-                        FileVBS.WriteLine "    ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""SetCursorPos"""",""""JJJ""""," & x & "," & y & ")"""
-                        If vAct = "CLICK" Then
-                            FileVBS.WriteLine "    ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""mouse_event"""",""""JJJJJJ"""",2,0,0,0,0)"""
-                            FileVBS.WriteLine "    ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""mouse_event"""",""""JJJJJJ"""",4,0,0,0,0)"""
-                        ElseIf vAct = "DOUBLE CLICK" Then
-                            FileVBS.WriteLine "    ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""mouse_event"""",""""JJJJJJ"""",2,0,0,0,0)"""
-                            FileVBS.WriteLine "    ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""mouse_event"""",""""JJJJJJ"""",4,0,0,0,0)"""
-                            FileVBS.WriteLine "    WScript.Sleep 100"
-                            FileVBS.WriteLine "    ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""mouse_event"""",""""JJJJJJ"""",2,0,0,0,0)"""
-                            FileVBS.WriteLine "    ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""mouse_event"""",""""JJJJJJ"""",4,0,0,0,0)"""
-                        ElseIf vAct = "RIGHT CLICK" Then
-                            FileVBS.WriteLine "    ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""mouse_event"""",""""JJJJJJ"""",8,0,0,0,0)"""
-                            FileVBS.WriteLine "    ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""mouse_event"""",""""JJJJJJ"""",16,0,0,0,0)"""
-                        End If
-                        FileVBS.WriteLine "    Call UpdateLastCursorPos()"
-                    End If
-                End If
-            ElseIf vAct = "SCROLL UP" Then
-                Dim scrollNotchesUp
-                scrollNotchesUp = 1
-                If IsNumeric(vParam) And CInt(vParam) > 0 Then scrollNotchesUp = CInt(vParam)
-                FileVBS.WriteLine "    ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""mouse_event"""",""""JJJJJJ"""",2048,0,0," & (scrollNotchesUp * 120) & ",0)"""
-            ElseIf vAct = "SCROLL DOWN" Then
-                Dim scrollNotchesDown
-                scrollNotchesDown = 1
-                If IsNumeric(vParam) And CInt(vParam) > 0 Then scrollNotchesDown = CInt(vParam)
-                FileVBS.WriteLine "    ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""mouse_event"""",""""JJJJJJ"""",2048,0,0," & (scrollNotchesDown * -120) & ",0)"""
-            ElseIf vAct = "SCREENSHOT" Then
-                FileVBS.WriteLine "    Call RunScreenshot(shotFld & " & qShot & "\" & qShot & " & " & qShot & shotPrefix & "_" & qShot & " & (shotCounter + (currentLoop - 1) * " & mainShotSteps & " + " & mainShotIdx & ") & " & qShot & ".png" & qShot & ", -1, -1, -1, -1)"
-                mainShotIdx = mainShotIdx + 1
-            ElseIf vAct = "SCREENSHOT REGION" Then
-                Dim sRParts, sFileName, sWH, sWxH, sRCoord, sRx, sRy, sRw, sRh
-                sRParts = Split(vParam, ",")
-                sFileName = Trim(sRParts(0))
-                sWH = "-"
-                If UBound(sRParts) >= 1 Then sWH = Trim(sRParts(1))
-                sRx = "-" : sRy = "-"
-                If InStr(vCoord, ",") > 0 Then
-                    sRCoord = Split(vCoord, ",")
-                    sRx = Trim(sRCoord(0)) : sRy = Trim(sRCoord(1))
-                End If
-                sRw = "-" : sRh = "-"
-                If InStr(sWH, "x") > 0 Then
-                    sWxH = Split(sWH, "x")
-                    sRw = Trim(sWxH(0)) : sRh = Trim(sWxH(1))
-                End If
-                If IsNumeric(sRx) And IsNumeric(sRy) And IsNumeric(sRw) And IsNumeric(sRh) Then
-                    FileVBS.WriteLine "    Call RunScreenshot(shotFld & " & qShot & "\" & qShot & " & " & qShot & shotPrefix & "_" & qShot & " & (shotCounter + (currentLoop - 1) * " & mainShotSteps & " + " & mainShotIdx & ") & " & qShot & ".png" & qShot & ", " & sRx & ", " & sRy & ", " & sRw & ", " & sRh & ")"
-                    mainShotIdx = mainShotIdx + 1
-                End If
-            ElseIf vAct = "WRITE" Or vAct = "SHORTCUT" Then
-                FileVBS.WriteLine "    shl.SendKeys """ & vParam & """"
-            End If
-            FileVBS.WriteLine "    WScript.Sleep " & vDelay
-        Next
-        
+        FileVBS.WriteLine "    Call RunSequence_MAIN()"
         FileVBS.WriteLine "    If Not runForever And currentLoop >= maxLoop Then Exit Do"
         FileVBS.WriteLine "    WScript.Sleep 300"
         FileVBS.WriteLine "Loop"
-        
-        ' EXTRA SEQUENCE POST-LOOPS
-        Set extTbody = document.getElementById("extraTableBody")
-        Set extRows = extTbody.rows
-        If document.getElementById("chkExtraSeq").checked And extRows.length > 0 Then
-            extShotIdx = 0
-            FileVBS.WriteLine " ' --- POST LOOPS EXTRA SEQUENCE ---"
-            For extRowIdx = 0 To extRows.length - 1
-                Set curRow = extRows(extRowIdx)
-                vName = curRow.getElementsByClassName("status-name")(0).value
-                vAct = curRow.getElementsByClassName("status-act")(0).value
-                vCoord = curRow.getElementsByClassName("status-coord")(0).value
-                vColor = curRow.getElementsByClassName("status-color")(0).value
-                vParam = curRow.getElementsByClassName("status-param")(0).value
-                vDelay = curRow.getElementsByClassName("status-delay")(0).value
-                
-                FileVBS.WriteLine "Call CheckPhysicalHold()"
-                FileVBS.WriteLine "Call LogStatus(" & (extRowIdx + 1) & ", " & extRows.length & ", ""EXTRA #" & (extRowIdx + 1) & ": " & vName & """)"
-                If vAct = "SWITCH_APP" Then
-                    FileVBS.WriteLine "AutoSwitchActiveWindow """ & vParam & """"
-                ElseIf vAct = "CLICK" Or vAct = "DOUBLE CLICK" Or vAct = "RIGHT CLICK" Or vAct = "MOVE CURSOR ONLY" Then
-                    If InStr(vCoord, ",") > 0 Then
-                        cParts = Split(vCoord, ","): x = Trim(cParts(0)): y = Trim(cParts(1))
-                        If IsNumeric(x) And IsNumeric(y) Then
-                            FileVBS.WriteLine "WaitDynamicHoldColor " & x & ", " & y & ", """ & vColor & """"
-                            FileVBS.WriteLine "ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""SetCursorPos"""",""""JJJ""""," & x & "," & y & ")"""
-                            If vAct = "CLICK" Then
-                                FileVBS.WriteLine "ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""mouse_event"""",""""JJJJJJ"""",2,0,0,0,0)"""
-                                FileVBS.WriteLine "ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""mouse_event"""",""""JJJJJJ"""",4,0,0,0,0)"""
-                            ElseIf vAct = "DOUBLE CLICK" Then
-                                FileVBS.WriteLine "ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""mouse_event"""",""""JJJJJJ"""",2,0,0,0,0)"""
-                                FileVBS.WriteLine "ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""mouse_event"""",""""JJJJJJ"""",4,0,0,0,0)"""
-                                FileVBS.WriteLine "WScript.Sleep 100"
-                                FileVBS.WriteLine "ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""mouse_event"""",""""JJJJJJ"""",2,0,0,0,0)"""
-                                FileVBS.WriteLine "ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""mouse_event"""",""""JJJJJJ"""",4,0,0,0,0)"""
-                            ElseIf vAct = "RIGHT CLICK" Then
-                                FileVBS.WriteLine "ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""mouse_event"""",""""JJJJJJ"""",8,0,0,0,0)"""
-                                FileVBS.WriteLine "ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""mouse_event"""",""""JJJJJJ"""",16,0,0,0,0)"""
-                            End If
-                            FileVBS.WriteLine "UpdateLastCursorPos"
-                        End If
-                    End If
-                ElseIf vAct = "SCROLL UP" Then
-                    Dim scrollNotchesUpExt
-                    scrollNotchesUpExt = 1
-                    If IsNumeric(vParam) And CInt(vParam) > 0 Then scrollNotchesUpExt = CInt(vParam)
-                    FileVBS.WriteLine "ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""mouse_event"""",""""JJJJJJ"""",2048,0,0," & (scrollNotchesUpExt * 120) & ",0)"""
-                ElseIf vAct = "SCROLL DOWN" Then
-                    Dim scrollNotchesDownExt
-                    scrollNotchesDownExt = 1
-                    If IsNumeric(vParam) And CInt(vParam) > 0 Then scrollNotchesDownExt = CInt(vParam)
-                    FileVBS.WriteLine "ax.ExecuteExcel4Macro ""CALL(""""user32"""",""""mouse_event"""",""""JJJJJJ"""",2048,0,0," & (scrollNotchesDownExt * -120) & ",0)"""
-                ElseIf vAct = "SCREENSHOT" Then
-                    FileVBS.WriteLine "RunScreenshot shotFld & " & qShot & "\" & qShot & " & " & qShot & shotPrefix & "_" & qShot & " & (shotCounter + maxLoop * " & mainShotSteps & " + " & extShotIdx & ") & " & qShot & ".png" & qShot & ", -1, -1, -1, -1"
-                    extShotIdx = extShotIdx + 1
-                ElseIf vAct = "SCREENSHOT REGION" Then
-                    Dim eRParts, eFileName, eWH, eWxH, eRCoord, eRx, eRy, eRw, eRh
-                    eRParts = Split(vParam, ",")
-                    eFileName = Trim(eRParts(0))
-                    eWH = "-"
-                    If UBound(eRParts) >= 1 Then eWH = Trim(eRParts(1))
-                    eRx = "-" : eRy = "-"
-                    If InStr(vCoord, ",") > 0 Then
-                        eRCoord = Split(vCoord, ",")
-                        eRx = Trim(eRCoord(0)) : eRy = Trim(eRCoord(1))
-                    End If
-                    eRw = "-" : eRh = "-"
-                    If InStr(eWH, "x") > 0 Then
-                        eWxH = Split(eWH, "x")
-                        eRw = Trim(eWxH(0)) : eRh = Trim(eWxH(1))
-                    End If
-                    If IsNumeric(eRx) And IsNumeric(eRy) And IsNumeric(eRw) And IsNumeric(eRh) Then
-                        FileVBS.WriteLine "RunScreenshot shotFld & " & qShot & "\" & qShot & " & " & qShot & shotPrefix & "_" & qShot & " & (shotCounter + maxLoop * " & mainShotSteps & " + " & extShotIdx & ") & " & qShot & ".png" & qShot & ", " & eRx & ", " & eRy & ", " & eRw & ", " & eRh
-                        extShotIdx = extShotIdx + 1
-                    End If
-                ElseIf vAct = "WRITE" Or vAct = "SHORTCUT" Then
-                    FileVBS.WriteLine "shl.SendKeys """ & vParam & """"
-                End If
-                FileVBS.WriteLine "WScript.Sleep " & vDelay
-            Next
-        End If
 
         FileVBS.WriteLine "ax.Quit: Set ax = Nothing"
         FileVBS.WriteLine "On Error Resume Next"
@@ -1849,43 +2105,50 @@ Sub ReadStatusLog()
                                 curStep = CDbl(stepParts(0))
                                 totStep = CDbl(stepParts(1))
                                 
-                                Dim loopPct
-                                loopPct = Fix((curStep / totStep) * 100)
-                                document.getElementById("barLoopProg").style.width = loopPct & "%"
-                                document.getElementById("txtLoopProg").innerText = loopPct & "%"
-                                
-                                Dim loopInfoParts, curLoop, totLoop
-                                If InStr(parts(0), "/") > 0 Then
-                                    loopInfoParts = Split(parts(0), "/")
-                                    curLoop = CDbl(loopInfoParts(0))
+                                If totStep > 0 And curStep >= 0 Then
+                                    Dim loopPct
+                                    loopPct = Fix((curStep / totStep) * 100)
+                                    If loopPct > 100 Then loopPct = 100
+                                    document.getElementById("barLoopProg").style.width = loopPct & "%"
+                                    document.getElementById("txtLoopProg").innerText = loopPct & "%"
                                     
-                                    If IsNumeric(loopInfoParts(1)) Then
-                                        totLoop = CDbl(loopInfoParts(1))
-                                        Dim totalPct
-                                        totalPct = Fix((((curLoop - 1) * totStep + curStep) / (totStep * totLoop)) * 100)
-                                        document.getElementById("barTotalProg").className = "progress-bar-fill total"
-                                        document.getElementById("barTotalProg").style.width = totalPct & "%"
-                                        document.getElementById("txtTotalProg").innerText = totalPct & "%"
+                                    Dim loopInfoParts, curLoop, totLoop
+                                    If InStr(parts(0), "/") > 0 Then
+                                        loopInfoParts = Split(parts(0), "/")
+                                        curLoop = CDbl(loopInfoParts(0))
                                         
-                                        Dim currentElapsedSec
-                                        currentElapsedSec = Timer - startTime
-                                        If currentElapsedSec - lastEstUpdateSec >= 10 Then
-                                            lastEstUpdateSec = currentElapsedSec
-                                            Dim totalCompletedSteps, totalAllSteps, avgTimePerStep, remainingSteps, estSec
-                                            totalCompletedSteps = ((curLoop - 1) * totStep) + curStep
-                                            totalAllSteps = totStep * totLoop
-                                            remainingSteps = totalAllSteps - totalCompletedSteps
-                                            
-                                            If totalCompletedSteps > 0 And currentElapsedSec > 0 Then
-                                                avgTimePerStep = currentElapsedSec / totalCompletedSteps
-                                                estSec = remainingSteps * avgTimePerStep
-                                                document.getElementById("txtEstTime").innerText = FormatSeconds(estSec)
+                                        If IsNumeric(loopInfoParts(1)) Then
+                                            totLoop = CDbl(loopInfoParts(1))
+                                            If totLoop > 0 Then
+                                                Dim totalPct
+                                                totalPct = Fix((((curLoop - 1) * totStep + curStep) / (totStep * totLoop)) * 100)
+                                                If totalPct > 100 Then totalPct = 100
+                                                If totalPct < 0 Then totalPct = 0
+                                                document.getElementById("barTotalProg").className = "progress-bar-fill total"
+                                                document.getElementById("barTotalProg").style.width = totalPct & "%"
+                                                document.getElementById("txtTotalProg").innerText = totalPct & "%"
+                                                
+                                                Dim currentElapsedSec
+                                                currentElapsedSec = Timer - startTime
+                                                If currentElapsedSec - lastEstUpdateSec >= 10 Then
+                                                    lastEstUpdateSec = currentElapsedSec
+                                                    Dim totalCompletedSteps, totalAllSteps, avgTimePerStep, remainingSteps, estSec
+                                                    totalCompletedSteps = ((curLoop - 1) * totStep) + curStep
+                                                    totalAllSteps = totStep * totLoop
+                                                    remainingSteps = totalAllSteps - totalCompletedSteps
+                                                    
+                                                    If totalCompletedSteps > 0 And currentElapsedSec > 0 And remainingSteps > 0 Then
+                                                        avgTimePerStep = currentElapsedSec / totalCompletedSteps
+                                                        estSec = remainingSteps * avgTimePerStep
+                                                        document.getElementById("txtEstTime").innerText = FormatSeconds(estSec)
+                                                    End If
+                                                End If
                                             End If
+                                        Else
+                                            document.getElementById("barTotalProg").className = "progress-bar-fill infinite-mode"
+                                            document.getElementById("txtTotalProg").innerText = "∞ INFINITE LOOP"
+                                            document.getElementById("txtEstTime").innerText = "∞ INFINITE"
                                         End If
-                                    Else
-                                        document.getElementById("barTotalProg").className = "progress-bar-fill infinite-mode"
-                                        document.getElementById("txtTotalProg").innerText = "∞ INFINITE LOOP"
-                                        document.getElementById("txtEstTime").innerText = "∞ INFINITE"
                                     End If
                                 End If
                             End If

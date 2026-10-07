@@ -1,13 +1,14 @@
 Dim shotFld
 shotFld = "D:\App\this-aint-rpa-main\screenshot"
-' GENERATED ENGINE v1.7-pro Mouse Interrupt & Countdown Edition
-Dim shl, ax, fso, currentLoop, maxLoop, runForever, ts, lastPhysX, lastPhysY, capExe
+' GENERATED ENGINE v1.5.0 Multi-Sequence & CHECK PIXEL Edition
+Dim shl, ax, fso, currentLoop, maxLoop, runForever, ts, lastPhysX, lastPhysY, capExe, RunSeqShotIdx
+RunSeqShotIdx = 0
 Set shl = CreateObject("WScript.Shell")
 Set ax = CreateObject("Excel.Application")
 Set fso = CreateObject("Scripting.FileSystemObject")
 capExe = fso.GetParentFolderName(WScript.ScriptFullName) & "\ScreenCap.exe"
 WScript.Sleep 1500
-maxLoop = 789: runForever = False
+maxLoop = 999999: runForever = True
 Sub UpdateLastCursorPos()
    On Error Resume Next
    Dim posHex, fullPos
@@ -88,6 +89,20 @@ Function WaitDynamicHoldColor(targetX, targetY, targetHexColor)
        WScript.Sleep 50
    Loop
 End Function
+Function ReadPixelHex(targetX, targetY)
+   On Error Resume Next
+   Dim hDC, rgbVal, curR, curG, curB
+   ReadPixelHex = "#000000"
+   hDC = ax.ExecuteExcel4Macro("CALL(""user32"",""GetDC"",""JJ"",0)")
+   rgbVal = ax.ExecuteExcel4Macro("CALL(""gdi32"",""GetPixel"",""JJJJ""," & hDC & "," & targetX & "," & targetY & ")")
+   ax.ExecuteExcel4Macro "CALL(""user32"",""ReleaseDC"",""JJJ"",0," & hDC & ")"
+   If rgbVal >= 0 Then
+       curR = rgbVal Mod 256
+       curG = (rgbVal \ 256) Mod 256
+       curB = (rgbVal \ 65536) Mod 256
+       ReadPixelHex = "#" & Right("0" & Hex(curR), 2) & Right("0" & Hex(curG), 2) & Right("0" & Hex(curB), 2)
+   End If
+End Function
 Sub AutoSwitchActiveWindow(targetTitle)
    Dim cleanTitle, wmi, processes, exeName, isRunning, i
    On Error Resume Next
@@ -123,17 +138,66 @@ Sub RunScreenshot(outFile, rx, ry, rw, rh)
    End If
    WScript.Sleep 200
 End Sub
-currentLoop = 0
-Do While (currentLoop < maxLoop) Or runForever
-    currentLoop = currentLoop + 1
+Sub RunSequence_MAIN()
     Call CheckPhysicalHold()
-    Call LogStatus(1, 1, "Step #1: Langkah 1 [CLICK]")
-    Call WaitDynamicHoldColor(247, 308, "#0C1C44")
-    ax.ExecuteExcel4Macro "CALL(""user32"",""SetCursorPos"",""JJJ"",247,308)"
+    Call LogStatus(1, 3, "MAIN #1: BRANCH [CHECK PIXEL]")
+    If UCase(ReadPixelHex(413, 521)) = UCase("#266183") Then Call RunSequence_SSequence
+    WScript.Sleep 600
+    Call CheckPhysicalHold()
+    Call LogStatus(2, 3, "MAIN #2: BRANCH [CHECK PIXEL]")
+    If UCase(ReadPixelHex(789, 501)) = UCase("#5EA61E") Then Call RunSequence_SSequence_2
+    WScript.Sleep 600
+    Call CheckPhysicalHold()
+    Call LogStatus(3, 3, "MAIN #3: BRANCH [CHECK PIXEL]")
+    If UCase(ReadPixelHex(638, 593)) = UCase("#F20000") Then Call RunSequence_SSequence_3
+    WScript.Sleep 600
+End Sub
+Sub RunSequence_SSequence()
+    Call CheckPhysicalHold()
+    Call LogStatus(1, 2, "Sequence #1: Langkah 5 [CLICK]")
+    Call WaitDynamicHoldColor(396, 597, "")
+    ax.ExecuteExcel4Macro "CALL(""user32"",""SetCursorPos"",""JJJ"",396,597)"
     ax.ExecuteExcel4Macro "CALL(""user32"",""mouse_event"",""JJJJJJ"",2,0,0,0,0)"
     ax.ExecuteExcel4Macro "CALL(""user32"",""mouse_event"",""JJJJJJ"",4,0,0,0,0)"
     Call UpdateLastCursorPos()
     WScript.Sleep 600
+    Call CheckPhysicalHold()
+    Call LogStatus(2, 2, "Sequence #2: Langkah 6 [WRITE]")
+    shl.SendKeys "Sequence1"
+    WScript.Sleep 600
+End Sub
+Sub RunSequence_SSequence_2()
+    Call CheckPhysicalHold()
+    Call LogStatus(1, 2, "Sequence 2 #1: Langkah 7 [CLICK]")
+    Call WaitDynamicHoldColor(754, 547, "")
+    ax.ExecuteExcel4Macro "CALL(""user32"",""SetCursorPos"",""JJJ"",754,547)"
+    ax.ExecuteExcel4Macro "CALL(""user32"",""mouse_event"",""JJJJJJ"",2,0,0,0,0)"
+    ax.ExecuteExcel4Macro "CALL(""user32"",""mouse_event"",""JJJJJJ"",4,0,0,0,0)"
+    Call UpdateLastCursorPos()
+    WScript.Sleep 600
+    Call CheckPhysicalHold()
+    Call LogStatus(2, 2, "Sequence 2 #2: Langkah 8 [WRITE]")
+    shl.SendKeys "Sequence2"
+    WScript.Sleep 600
+End Sub
+Sub RunSequence_SSequence_3()
+    Call CheckPhysicalHold()
+    Call LogStatus(1, 2, "Sequence 3 #1: Langkah 9 [CLICK]")
+    Call WaitDynamicHoldColor(592, 692, "")
+    ax.ExecuteExcel4Macro "CALL(""user32"",""SetCursorPos"",""JJJ"",592,692)"
+    ax.ExecuteExcel4Macro "CALL(""user32"",""mouse_event"",""JJJJJJ"",2,0,0,0,0)"
+    ax.ExecuteExcel4Macro "CALL(""user32"",""mouse_event"",""JJJJJJ"",4,0,0,0,0)"
+    Call UpdateLastCursorPos()
+    WScript.Sleep 600
+    Call CheckPhysicalHold()
+    Call LogStatus(2, 2, "Sequence 3 #2: Langkah 10 [WRITE]")
+    shl.SendKeys "Sequence3"
+    WScript.Sleep 600
+End Sub
+currentLoop = 0
+Do While (currentLoop < maxLoop) Or runForever
+    currentLoop = currentLoop + 1
+    Call RunSequence_MAIN()
     If Not runForever And currentLoop >= maxLoop Then Exit Do
     WScript.Sleep 300
 Loop
