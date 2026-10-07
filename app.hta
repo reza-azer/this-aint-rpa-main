@@ -91,8 +91,10 @@
                         <div class="table-title-bar">
                             <h2 class="table-title"><span class="table-ico">🎯</span> <span id="seqTitle_MAIN">MAIN SEQUENCE</span> <span class="active-badge">Active target</span></h2>
                             <div>
-                                <button class="btn-primary" style="background-image:linear-gradient(135deg,#0284c7,#0ea5e9); padding:7px 14px; font-size:11px;" onclick="vbscript:SaveSequenceMetadata()">💾 Save Sequence</button>
-                                <button class="btn-primary" style="background-image:linear-gradient(135deg,#d97706,#f59e0b); padding:7px 14px; font-size:11px;" onclick="vbscript:LoadSequenceMetadata()">📂 Load Sequence</button>
+                                <button class="btn-primary" style="background-image:linear-gradient(135deg,#0284c7,#0ea5e9); padding:7px 14px; font-size:11px;" onclick="vbscript:SaveSequenceMetadata()">💾 Save Profile</button>
+                                <button class="btn-primary" style="background-image:linear-gradient(135deg,#059669,#10b981); padding:7px 14px; font-size:11px;" onclick="vbscript:SaveActiveSequence()">💾 Save Sequence</button>
+                                <button class="btn-primary" style="background-image:linear-gradient(135deg,#d97706,#f59e0b); padding:7px 14px; font-size:11px;" onclick="vbscript:LoadSequenceMetadata()">📂 Load Profile</button>
+                                <button class="btn-primary" style="background-image:linear-gradient(135deg,#db2777,#ec4899); padding:7px 14px; font-size:11px;" onclick="vbscript:LoadActiveSequence()">📂 Load Sequence</button>
                             </div>
                         </div>
                         <p class="sub-hint">The main loop — every step below repeats for each loop. <b>CHECK PIXEL</b> memicu percabangan: <b>WAIT</b> (do nothing, tunggu warna cocok), <b>SKIP</b> (lompat ke perulangan berikutnya), atau <b>SWITCH</b> (ganti ke sequence lain sekali jalan, lalu lanjut step MAIN berikutnya).</p>
@@ -336,7 +338,7 @@
 
 <div id="sequencePickerModal" class="modal-overlay" style="z-index: 1001;">
     <div class="modal-box" style="width: 560px;">
-        <h3>📂 Load Saved Sequence</h3>
+        <h3 id="sequencePickerTitle">📂 Load Saved Sequence</h3>
         <p class="sub-hint" style="margin-bottom:12px;">Pick a sequence to load into the tables:</p>
         <div class="sequence-list" id="sequenceListContainer">
             <!-- populated by VBScript PopulateSequencePicker() -->
@@ -602,9 +604,11 @@ Sub AppCleanExit()
  End Sub
 
     Dim activeSeqName, gRowIdCounter, lastRowGid, arrSeqNames
+    Dim seqPickMode
     activeSeqName = "MAIN"
     gRowIdCounter = 0
     lastRowGid = 0
+    seqPickMode = "profile"
     ReDim arrSeqNames(0)
     arrSeqNames(0) = "MAIN"
     
@@ -740,6 +744,10 @@ Sub AppCleanExit()
         h = "<div class='table-title-bar'>" & _
             "<h3 class='table-title'><span class='table-ico'>🧩</span> <span id='seqTitle_" & key & "'>" & HtmlEncodeAttr(seqName) & "</span></h3>" & _
             "<div>" & _
+                "<button class='btn-seq-mini' onclick=""vbscript:SaveActiveSequence()"">💾 Save Seq</button>" & _
+                "<button class='btn-seq-mini' onclick=""vbscript:LoadActiveSequence()"">📂 Load Seq</button>" & _
+                "<button class='btn-seq-mini' onclick=""vbscript:SaveSequenceMetadata()"">💾 Save Profile</button>" & _
+                "<button class='btn-seq-mini' onclick=""vbscript:LoadSequenceMetadata()"">📂 Load Profile</button>" & _
                 "<button class='btn-seq-mini' onclick=""vbscript:RenameSequence('" & seqName & "')"">✏️ Rename</button>" & _
                 "<button class='btn-seq-mini' onclick=""vbscript:DeleteSequence('" & seqName & "')"">🗑️ Delete</button>" & _
             "</div>" & _
@@ -1379,6 +1387,41 @@ Sub AppCleanExit()
         MsgBox "Multi-sequence '" & seqName & "' saved successfully!", 64, "Save Successful"
     End Sub
 
+    Sub SaveActiveSequence()
+        Dim seqName, seqFolder, seqPath, FileMeta, tbody, rowIdx, curRow, totalRows
+        seqName = SanitizeSequenceName(activeSeqName)
+        If seqName = "" Then MsgBox "Nama sequence tidak valid.", 48, "Error" : Exit Sub
+
+        Set tbody = document.getElementById("seqTbody_" & SeqKey(activeSeqName))
+        totalRows = 0
+        If Not tbody Is Nothing Then totalRows = tbody.rows.length
+        If totalRows = 0 Then MsgBox "Sequence '" & activeSeqName & "' kosong. Nothing to save.", 48, "Warning" : Exit Sub
+
+        seqFolder = wshShell.CurrentDirectory & "\sequences"
+        If Not FSO.FolderExists(seqFolder) Then FSO.CreateFolder seqFolder
+
+        seqPath = seqFolder & "\" & seqName & ".txt"
+        If FSO.FileExists(seqPath) Then
+            If MsgBox("A sequence named '" & seqName & "' already exists." & vbCrLf & vbCrLf & _
+                       "Overwrite it?", 36, "Confirm Overwrite") <> 6 Then Exit Sub
+        End If
+
+        Set FileMeta = FSO.CreateTextFile(seqPath, True)
+        FileMeta.WriteLine "[SEQUENCE:" & SanitizeSequenceName(activeSeqName) & "]"
+        For rowIdx = 0 To tbody.rows.length - 1
+            Set curRow = tbody.rows(rowIdx)
+            FileMeta.WriteLine curRow.getElementsByClassName("status-name")(0).value & "||" & _
+                               curRow.getElementsByClassName("status-act")(0).value & "||" & _
+                               curRow.getElementsByClassName("status-coord")(0).value & "||" & _
+                               curRow.getElementsByClassName("status-color")(0).value & "||" & _
+                               curRow.getElementsByClassName("status-param")(0).value & "||" & _
+                               curRow.getElementsByClassName("status-delay")(0).value & "||" & _
+                               curRow.getElementsByClassName("status-param")(0).value
+        Next
+        FileMeta.Close
+        MsgBox "Sequence '" & activeSeqName & "' saved as '" & seqName & ".txt'!", 64, "Save Successful"
+    End Sub
+
     Function SanitizeSequenceName(raw)
         Dim c, i, allowed
         allowed = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 -_"
@@ -1392,12 +1435,13 @@ Sub AppCleanExit()
     End Function
 
     Sub LoadSequenceMetadata()
+        seqPickMode = "profile"
         Dim seqFolder, seqFolderObj, seqFile, f, itemCount
         seqFolder = wshShell.CurrentDirectory & "\sequences"
 
         If Not FSO.FolderExists(seqFolder) Then
             MsgBox "No saved sequences found." & vbCrLf & vbCrLf & _
-                   "Create one by clicking 'Save Sequence' first.", 48, "No Sequences"
+                   "Create one by clicking 'Save Profile' first.", 48, "No Sequences"
             Exit Sub
         End If
 
@@ -1416,7 +1460,40 @@ Sub AppCleanExit()
 
         If itemCount = 0 Then
             MsgBox "No saved sequences found." & vbCrLf & vbCrLf & _
-                   "Create one by clicking 'Save Sequence' first.", 48, "No Sequences"
+                   "Create one by clicking 'Save Profile' first.", 48, "No Sequences"
+            Exit Sub
+        End If
+
+        Call PopulateSequencePicker(seqFileNames, seqFileDates, seqFileSizes, itemCount)
+    End Sub
+
+    Sub LoadActiveSequence()
+        seqPickMode = "active"
+        Dim seqFolder, seqFolderObj, seqFile, f, itemCount
+        seqFolder = wshShell.CurrentDirectory & "\sequences"
+
+        If Not FSO.FolderExists(seqFolder) Then
+            MsgBox "No saved sequences found." & vbCrLf & vbCrLf & _
+                   "Save the active sequence first.", 48, "No Sequences"
+            Exit Sub
+        End If
+
+        Set seqFolderObj = FSO.GetFolder(seqFolder)
+        itemCount = 0
+        ReDim seqFileNames(0), seqFileDates(0), seqFileSizes(0)
+        For Each f In seqFolderObj.Files
+            If LCase(FSO.GetExtensionName(f.Name)) = "txt" Then
+                If itemCount > 0 Then ReDim Preserve seqFileNames(itemCount), seqFileDates(itemCount), seqFileSizes(itemCount)
+                seqFileNames(itemCount) = Left(f.Name, Len(f.Name) - 4)
+                seqFileDates(itemCount) = FormatDateTime(f.DateLastModified, vbShortDate) & " " & FormatDateTime(f.DateLastModified, vbShortTime)
+                seqFileSizes(itemCount) = FormatFileSize(f.Size)
+                itemCount = itemCount + 1
+            End If
+        Next
+
+        If itemCount = 0 Then
+            MsgBox "No saved sequences found." & vbCrLf & vbCrLf & _
+                   "Save the active sequence first.", 48, "No Sequences"
             Exit Sub
         End If
 
@@ -1434,7 +1511,13 @@ Sub AppCleanExit()
     End Function
 
     Sub PopulateSequencePicker(names, dates, sizes, count)
-        Dim html, i
+        Dim html, i, titleText
+        If seqPickMode = "active" Then
+            titleText = "📂 Load Single Sequence (active table &ndash; " & HtmlEncodeAttr(activeSeqName) & ")"
+        Else
+            titleText = "📂 Load Profile (all sequences)"
+        End If
+        document.getElementById("sequencePickerTitle").innerHTML = titleText
         html = ""
         For i = 0 To count - 1
             html = html & "<div class='sequence-list-item' onclick=""vbscript:PickSequence('" & Replace(names(i), "'", "\'") & ".txt')"">" & _
@@ -1446,6 +1529,10 @@ Sub AppCleanExit()
     End Sub
 
     Sub PickSequence(filename)
+        If seqPickMode = "active" Then
+            Call PickActiveSequenceOnly(filename)
+            Exit Sub
+        End If
         Dim seqPath, objFile, lineStr, parts, section, partCount, branchArg, pX, pY, rowEl
         document.getElementById("sequencePickerModal").style.display = "none"
 
@@ -1497,6 +1584,86 @@ Sub AppCleanExit()
         Call SetActiveSequence(section)
 
         MsgBox "Sequence loaded from '" & Left(filename, Len(filename) - 4) & "'!", 64, "Load Successful"
+    End Sub
+
+    Sub PickActiveSequenceOnly(filename)
+        Dim seqPath, objFile, lineStr, parts, section, partCount, branchArg, pX, pY, rowEl
+        Dim targetName, tbody, matchedSection, firstSection, rowCount
+        document.getElementById("sequencePickerModal").style.display = "none"
+
+        seqPath = wshShell.CurrentDirectory & "\sequences\" & filename
+        If Not FSO.FileExists(seqPath) Then MsgBox "File not found: " & filename, 48, "Error" : Exit Sub
+
+        targetName = activeSeqName
+        Set tbody = document.getElementById("seqTbody_" & SeqKey(targetName))
+        If tbody Is Nothing Then Exit Sub
+
+        section = ""
+        firstSection = ""
+        matchedSection = ""
+        Set objFile = FSO.OpenTextFile(seqPath, 1)
+        Do Until objFile.AtEndOfStream
+            lineStr = Trim(objFile.ReadLine)
+            If lineStr <> "" Then
+                If InStr(lineStr, "[SEQUENCE:") = 1 And Right(lineStr, 1) = "]" Then
+                    section = Trim(Mid(lineStr, 11, Len(lineStr) - 11))
+                    If firstSection = "" Then firstSection = section
+                    If LCase(section) = LCase(targetName) Then matchedSection = section
+                ElseIf lineStr = "[MAIN]" Then
+                    section = "MAIN"
+                    If firstSection = "" Then firstSection = section
+                    If LCase(section) = LCase(targetName) Then matchedSection = section
+                ElseIf lineStr = "[EXTRA]" Then
+                    section = "Extra"
+                    If firstSection = "" Then firstSection = section
+                End If
+            End If
+        Loop
+        objFile.Close
+
+        If matchedSection = "" Then matchedSection = firstSection
+        If matchedSection = "" Then MsgBox "File '" & filename & "' berisi sequence kosong.", 48, "Error" : Exit Sub
+
+        tbody.innerHTML = ""
+
+        section = ""
+        rowCount = 0
+        Set objFile = FSO.OpenTextFile(seqPath, 1)
+        Do Until objFile.AtEndOfStream
+            lineStr = Trim(objFile.ReadLine)
+            If lineStr <> "" Then
+                If InStr(lineStr, "[SEQUENCE:") = 1 And Right(lineStr, 1) = "]" Then
+                    section = Trim(Mid(lineStr, 11, Len(lineStr) - 11))
+                ElseIf lineStr = "[MAIN]" Then
+                    section = "MAIN"
+                ElseIf lineStr = "[EXTRA]" Then
+                    section = "Extra"
+                ElseIf section <> "" And LCase(section) = LCase(matchedSection) Then
+                    parts = Split(lineStr, "||")
+                    partCount = UBound(parts)
+                    If partCount >= 5 Then
+                        pX = "-" : pY = "-"
+                        If InStr(parts(2), ",") > 0 Then pX = Trim(Split(parts(2), ",")(0)) : pY = Trim(Split(parts(2), ",")(1))
+                        branchArg = Trim(parts(4))
+                        If partCount >= 6 Then branchArg = Trim(parts(6))
+                        If branchArg = "" Then branchArg = "-"
+                        Call AddActionRow(targetName, parts(1), pX, pY, parts(3), parts(4), parts(5))
+                        Set rowEl = document.getElementById("row_" & lastRowGid)
+                        If Not rowEl Is Nothing Then rowEl.setAttribute "data-branch", branchArg
+                        Call SetLastRowName(parts(0))
+                        rowCount = rowCount + 1
+                    End If
+                End If
+            End If
+        Loop
+        objFile.Close
+
+        Call RefreshAllBranchSelects()
+        Call ApplyStoredBranchValues()
+        Call SetActiveSequence(targetName)
+        document.body.focus()
+
+        MsgBox "Sequence '" & targetName & "' dimuat dari '" & Left(filename, Len(filename) - 4) & "' (" & rowCount & " langkah).", 64, "Load Successful"
     End Sub
 
     Sub ApplyStoredBranchValues()
